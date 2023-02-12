@@ -1,6 +1,5 @@
 package com.example.nhentai.model
 
-
 //data class Doujin(
 //    var id: Int,
 //    val media_id: String,
@@ -26,21 +25,15 @@ package com.example.nhentai.model
 
 data class DynamicNHentai
 (
-
     var id: Int,
     var urlCover: String?,
     var h1: String?,
     var h2: String?,
-
     var tags: MutableList<TagContainer>?,
-
     var num_pages: Int,         //Количество страниц
     var uploaded : String,
-
     var thumbContainers : MutableList<ThumbContainer> //Список Иконок
-
 )
-
 
 data class TagContainer(
     var type : String,
