@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.nhentai.model.DynamicNHentai
 import com.example.nhentai.model.NHentaiTag
 import com.example.nhentai.model.TagContainer
+import com.example.nhentai.model.ThumbContainer
 import com.example.nhentai.ui.theme.NhentaiTheme
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -136,6 +137,19 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         val thumbnail =
             doc.getElementById("thumbnail-container")?.getElementsByClass("thumb-container")
 
+        val thumbContainers : MutableList<ThumbContainer> = mutableListOf()//Список иконок
+
+        if (thumbnail != null) {
+            for (i in thumbnail) {
+                val a = i.childNode(1)
+                val href = a.attributes().get("href")
+                val src = a.childNode(1).attributes().get("data-src")
+                thumbContainers.add(ThumbContainer(href, src))
+            }
+        }
+
+
+
         val item: DynamicNHentai = DynamicNHentai(
             id = id,
             h1 = h1,
@@ -143,7 +157,8 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
             urlCover = coverURL,
             tags = tagContainerAll,
             num_pages = pages,
-            uploaded = uploaded
+            uploaded = uploaded,
+            thumbContainers = thumbContainers
         )
 
         item
