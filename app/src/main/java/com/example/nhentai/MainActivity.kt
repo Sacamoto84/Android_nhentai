@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.nhentai.model.DynamicNHentai
+import com.example.nhentai.model.NHentaiTag
+import com.example.nhentai.model.TagContainer
 import com.example.nhentai.ui.theme.NhentaiTheme
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -87,11 +89,62 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         val tags1 = info?.getElementById("tags")?.getElementsByClass("tag-container field-name ")
 
 
+        val tagContainerAll: MutableList<TagContainer> = mutableListOf<TagContainer>()
+
+
+        if (tags1 != null) {
+
+            for (i in tags1) {
+
+                val type = i.childNode(0).toString()
+                val size = i.getElementsByTag("a").size
+
+                val t: MutableList<NHentaiTag> = mutableListOf()
+
+                for (ii in 0 until size) {
+                    val href = i.getElementsByTag("a")[ii]?.attributes()?.get("href")
+                    val name = i.getElementsByClass("name")[ii].text()
+                    val count = i.getElementsByClass("count")[ii].text().toInt()
+
+                    t.add(NHentaiTag(name, href, count))
+                }
+
+                tagContainerAll.add(TagContainer(type, t))
+
+            }
+        }
+
+        var pages = 0
+        var uploaded = "."
+
+        if (tags != null) {
+            for (i in tags) {
+                val type = i.childNode(0).toString()
+                if (type == "\nPages: ")
+                {
+                    pages = i.getElementsByClass("name")[0].text().toInt()
+                }
+                else
+                {
+                    uploaded = i.getElementsByTag("time")[0].text()
+                }
+            }
+        }
+
+        tagContainerAll
+
         val thumbnail =
             doc.getElementById("thumbnail-container")?.getElementsByClass("thumb-container")
 
-
-        val item: DynamicNHentai = DynamicNHentai(id = id, h1 = h1, h2 = h2, urlCover = coverURL, num_pages = 0, tags = null)
+        val item: DynamicNHentai = DynamicNHentai(
+            id = id,
+            h1 = h1,
+            h2 = h2,
+            urlCover = coverURL,
+            tags = tagContainerAll,
+            num_pages = pages,
+            uploaded = uploaded
+        )
 
         item
         doc

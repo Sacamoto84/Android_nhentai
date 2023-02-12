@@ -50,7 +50,7 @@ data class NHentai(
 
 
 data class DynamicNHentai
-(
+    (
 //    var id: MaybeI32OrString,
 //    var media_id: String,
 //    var title: NHentaiTitle,
@@ -67,9 +67,11 @@ data class DynamicNHentai
     var h1: String?,
     var h2: String?,
 
-    var tags: MutableList<NHentaiTag>?,
+    var tags: MutableList<TagContainer>?,
 
     var num_pages: Int,
+
+    var uploaded : String
 )
 
 
@@ -91,12 +93,17 @@ data class NHentaiPage(
     var h: Int
 )
 
+
+data class TagContainer(
+    var type : String,
+    var tags: MutableList<NHentaiTag>?,
+)
+
+//Тег
 data class NHentaiTag(
-    var id: Int,
-    var type: String,
-    var name: String,
-    var url: String,
-    var count: Int
+    var name: String?,
+    var url: String?,
+    var count: Int?
 )
 
 
