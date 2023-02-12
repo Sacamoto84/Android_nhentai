@@ -10,6 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.nhentai.model.DynamicNHentai
 import com.example.nhentai.ui.theme.NhentaiTheme
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -70,13 +71,9 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         //        + "<body><p>Parsed HTML into a doc.</p></body></html>")
 
 
-
-
-
         val doc: Document = Jsoup.parse(html)
 
         val bigContainer = doc.getElementById("bigcontainer")
-        bigContainer
 
         val coverURL = bigContainer?.getElementById("cover")?.getElementsByTag("a")?.get(0)
             ?.getElementsByTag("img")?.get(0)?.attributes()?.get("src")
@@ -84,24 +81,19 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         val info = bigContainer?.getElementById("info")
         val h1 = info?.getElementsByTag("h1")?.get(0)?.childNode(0).toString()
         val h2 = info?.getElementsByTag("h2")?.get(0)?.childNode(0).toString()
-        val h3 = info?.getElementsByTag("h3")?.get(0)?.childNode(1).toString()
-        val gallery_id = h3.toInt()
+        val id = info?.getElementsByTag("h3")?.get(0)?.childNode(1).toString().toInt()
 
         val tags = info?.getElementById("tags")?.getElementsByClass("tag-container field-name")
         val tags1 = info?.getElementById("tags")?.getElementsByClass("tag-container field-name ")
 
 
-        val thumbnail = doc.getElementById("thumbnail-container")?.getElementsByClass("thumb-container")
+        val thumbnail =
+            doc.getElementById("thumbnail-container")?.getElementsByClass("thumb-container")
 
 
+        val item: DynamicNHentai = DynamicNHentai(id = id, h1 = h1, h2 = h2, urlCover = coverURL, num_pages = 0, tags = null)
 
-        thumbnail
-        tags1
-        tags
-        h1
-        h2
-        info
-        coverURL
+        item
         doc
 
 

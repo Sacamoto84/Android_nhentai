@@ -24,7 +24,7 @@ package com.example.nhentai.model
 //
 //)
 
-data class NHentai (
+data class NHentai(
     var id: Int,
     var media_id: String,
     var title: NHentaiTitle,
@@ -34,7 +34,7 @@ data class NHentai (
     var tags: MutableList<NHentaiTag>,
     var num_pages: Int,
     var num_favorites: Int
-    )
+)
 
 //data class DynamicNHentai (
 //    var id: MaybeI32OrString,
@@ -48,16 +48,41 @@ data class NHentai (
 //    var num_favoritesval : Int
 //)
 
+
+data class DynamicNHentai
+(
+//    var id: MaybeI32OrString,
+//    var media_id: String,
+//    var title: NHentaiTitle,
+//    var images: NHentaiImages,
+//    var scanlator: String,
+//    var upload_date: Int,
+//    var tags: NHentaiTags,
+//    var num_pages: Int,
+//    var num_favoritesval : Int
+
+
+    var id: Int,
+    var urlCover: String?,
+    var h1: String?,
+    var h2: String?,
+
+    var tags: MutableList<NHentaiTag>?,
+
+    var num_pages: Int,
+)
+
+
 data class NHentaiTitle(
     var english: String,
     var japanese: String,
     var pretty: String
 )
 
-data class NHentaiImages (
+data class NHentaiImages(
     var pages: MutableList<NHentaiPage>,
     var cover: NHentaiPage,
-    var thumbnailval : NHentaiPage
+    var thumbnailval: NHentaiPage
 )
 
 data class NHentaiPage(
@@ -73,10 +98,6 @@ data class NHentaiTag(
     var url: String,
     var count: Int
 )
-
-
-
-
 
 
 //data class NHentaiGroup (
