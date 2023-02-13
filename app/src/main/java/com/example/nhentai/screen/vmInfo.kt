@@ -2,6 +2,7 @@ package com.example.nhentai.screen
 
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nhentai.api.readHtmlFromURL
@@ -24,19 +25,24 @@ class vmInfo @Inject constructor(
 
     lateinit var DN: DynamicNHentai
 
-
-
+    var ReedDataComplete  = mutableStateOf(false) //Признак того что данные прочитаны полностью
 
     ////////////////////////////////////////////////////////
     fun launchReadFromId(id : Int = 403147) {
         Timber.i("...launchReadFromId()")
+        ReedDataComplete.value = false
         viewModelScope.launch(Dispatchers.IO) {
             Timber.i("Ok1")
             val html = readHtmlFromURL("https://nhentai.to/g/$id")
             Timber.i("Ok2")
             DN = stringToDynamicHentai(html)
             Timber.i("Ok3")
+            ReedDataComplete.value = true
         }
     }
+
+
+
+
 
 }
