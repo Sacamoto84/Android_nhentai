@@ -1,13 +1,11 @@
 package com.example.nhentai.parser
 
-import com.example.nhentai.html
 import com.example.nhentai.model.DynamicNHentai
 import com.example.nhentai.model.NHentaiTag
 import com.example.nhentai.model.TagContainer
 import com.example.nhentai.model.ThumbContainer
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-
 
 fun stringToDynamicHentai(html: String): DynamicNHentai {
 
@@ -32,7 +30,7 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
     val tags1 = info?.getElementById("tags")?.getElementsByClass("tag-container field-name ")
 
 
-    val tagContainerAll: MutableList<TagContainer> = mutableListOf<TagContainer>()
+    val tagContainerAll: MutableList<TagContainer> = mutableListOf()
 
 
     if (tags1 != null) {
@@ -70,8 +68,6 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
             }
         }
     }
-
-    tagContainerAll
 
     val thumbnail =
         doc.getElementById("thumbnail-container")?.getElementsByClass("thumb-container")

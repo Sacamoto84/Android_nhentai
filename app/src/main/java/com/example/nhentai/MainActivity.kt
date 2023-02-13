@@ -10,21 +10,27 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import coil.compose.AsyncImage
 import com.example.nhentai.api.readHtmlFromURL
 import com.example.nhentai.parser.stringToDynamicHentai
+import com.example.nhentai.screen.ScreenInfo
 import com.example.nhentai.ui.theme.NhentaiTheme
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.request.get
-import io.ktor.client.statement.HttpResponse
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import timber.log.Timber
+import timber.log.Timber.*
+import timber.log.Timber.Forest.plant
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        plant(DebugTree())
+
+        Timber.i("Hello")
+
         setContent {
             NhentaiTheme {
                 // A surface container using the 'background' color from the theme
@@ -32,14 +38,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    //Greeting("Android")
+
+                    ScreenInfo()
+
                 }
             }
         }
     }
 }
-
-
 
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -52,16 +59,22 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 
         GlobalScope.launch {
 
-            val a = stringToDynamicHentai(readHtmlFromURL())
-
+            //val aa = readHtmlFromURL()
+            val a = stringToDynamicHentai(html)
+            a
 
         }
 
 
+    })
 
+    {
 
+//        AsyncImage(
+//            model = "https://img.dogehls.xyz/galleries/2220556/1.png",
+//            contentDescription = null
+//        )
 
-    }) {
 
     }
 }
