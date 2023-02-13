@@ -1,17 +1,15 @@
-package com.example.nhentai.screen
+package com.example.nhentai.screen.info
 
 import android.annotation.SuppressLint
-import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nhentai.api.readHtmlFromURL
 import com.example.nhentai.model.DynamicNHentai
 import com.example.nhentai.parser.stringToDynamicHentai
+import com.example.nhentai.parser.stringToUrlOriginal
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -42,6 +40,20 @@ class vmInfo @Inject constructor(
     }
 
 
+
+    fun launchReadOriginalImageFromHref(href : String) {
+        Timber.i("...launchReadOriginalImageFromHref()")
+
+        viewModelScope.launch(Dispatchers.IO) {
+            Timber.i("Ok1")
+            val html = readHtmlFromURL("https://nhentai.to${href}".dropLast(1))
+            Timber.i("Ok2")
+            val OriginalURL = stringToUrlOriginal(html)
+            Timber.i("OriginalURL = $OriginalURL")
+            ReedDataComplete.value = true
+        }
+
+    }
 
 
 

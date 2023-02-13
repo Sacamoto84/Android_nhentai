@@ -10,10 +10,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import coil.compose.AsyncImage
-import com.example.nhentai.api.readHtmlFromURL
 import com.example.nhentai.parser.stringToDynamicHentai
-import com.example.nhentai.screen.ScreenInfo
+import com.example.nhentai.screen.info.ScreenInfo
 import com.example.nhentai.ui.theme.NhentaiTheme
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
