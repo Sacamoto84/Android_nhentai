@@ -10,10 +10,16 @@ import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.nhentai.cache.HTTPCacheFolderPath
 import com.example.nhentai.model.DynamicNHentai
 import com.example.nhentai.parser.stringToDynamicHentai
 import com.example.nhentai.screen.info.ScreenInfo
+import com.example.nhentai.screen.info.vmInfo
+import com.example.nhentai.screen.viewer.ScreenViewer
 import com.example.nhentai.ui.theme.NhentaiTheme
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -51,19 +57,31 @@ class MainActivity : ComponentActivity() {
             NhentaiTheme {
                 // A surface container using the 'background' color from the theme
 
-                    //Greeting("Android")
+                //Greeting("Android")
 
-                    val navController = rememberAnimatedNavController()
-
-                    ScreenInfo(navController)
+                //val navController = rememberAnimatedNavController()
 
 
+                val navController = rememberNavController()
+
+
+                //ScreenInfo(navController)
 
 
 
 
 
+                    NavHost(navController = navController, startDestination = "info") {
 
+                        composable("info") {
+                            ScreenInfo(navController)
+                        }
+
+                        composable("viewer") {
+                            ScreenViewer(navController)
+                        }
+
+                    }
 
 
 

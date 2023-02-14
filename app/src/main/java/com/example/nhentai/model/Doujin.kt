@@ -9,7 +9,10 @@ data class DynamicNHentai
     var tags: MutableList<TagContainer>?,
     var num_pages: Int,         //Количество страниц
     var uploaded: String,
-    var thumbContainers: MutableList<ThumbContainer> //Список Иконок
+    var thumbContainers: MutableList<ThumbContainer>, //Список Иконок
+
+    var selectedPage : Int //Номер выбранной картинки 1..num_pages
+
 )
 
 data class TagContainer(

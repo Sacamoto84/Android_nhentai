@@ -91,7 +91,8 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
         tags = tagContainerAll,
         num_pages = pages,
         uploaded = uploaded,
-        thumbContainers = thumbContainers
+        thumbContainers = thumbContainers,
+        selectedPage = 1
     )
 
     return item

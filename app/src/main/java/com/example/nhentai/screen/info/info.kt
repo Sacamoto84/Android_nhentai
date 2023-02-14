@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.MeasurePolicy
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.nhentai.DN
@@ -80,8 +81,8 @@ fun FlowLayout(
 @Composable
 fun ScreenInfo(
     navController: NavHostController,
+    viewModel: vmInfo = viewModel(),
     id: Int = 403147,
-    viewModel: vmInfo = hiltViewModel()
 ) {
 
     DisposableEffect(key1 = viewModel) {
@@ -155,8 +156,9 @@ fun ScreenInfo(
                                 .clickable {
                                     //Нажатие на иконку
                                     viewModel.launchReadOriginalImageFromHref(i.href.toString(), index)
+                                    DN.selectedPage = index + 1
 
-                                    //navController.navigate(Screen.Viewer.route+"?id={100}&currentPage={200}&countPage={300}")
+                                    navController.navigate("viewer") //По нажатию открываем viewer
                                 },
 
                             model = address//i.url.toString()
@@ -187,6 +189,4 @@ fun ScreenInfo(
 
 }
 
-fun onScroll(function: () -> Unit) {
 
-}

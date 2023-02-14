@@ -17,16 +17,13 @@ import timber.log.Timber
 import java.nio.file.Files
 import java.nio.file.Paths
 
-
-
-val client = HttpClient(CIO)
-{
-    install(Logging) { level = LogLevel.INFO }
-}
-
-
 suspend fun readHtmlFromURL(url : String = "https://nhentai.to/g/403146"): String {
     Timber.i("..readHtmlFromURL")
+
+    val client = HttpClient(CIO)
+    {
+        install(Logging) { level = LogLevel.INFO }
+    }
 
     if (cacheCheck(url))
     {
@@ -42,6 +39,7 @@ suspend fun readHtmlFromURL(url : String = "https://nhentai.to/g/403146"): Strin
         val result = response.bodyAsText()
         //Сохраним в кеш данный html
         cacheHTMLWrite(url, result)
+        client.close()
         return result
     }
 
