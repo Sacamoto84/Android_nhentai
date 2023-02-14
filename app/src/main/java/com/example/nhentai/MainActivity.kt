@@ -1,18 +1,20 @@
 package com.example.nhentai
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.nhentai.cache.HTTPCacheFolderPath
 import com.example.nhentai.parser.stringToDynamicHentai
 import com.example.nhentai.screen.info.ScreenInfo
 import com.example.nhentai.ui.theme.NhentaiTheme
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -21,7 +23,16 @@ import timber.log.Timber.*
 import timber.log.Timber.Forest.plant
 
 
+sealed class Screen(val route: String) {
+    object Info :     Screen("info")
+    object Viewer :   Screen("viewer")
+}
+
+@SuppressLint("StaticFieldLeak")
+lateinit var contex : Context
+
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalAnimationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -29,18 +40,72 @@ class MainActivity : ComponentActivity() {
 
         Timber.i("Hello")
 
+        HTTPCacheFolderPath = applicationContext.getExternalFilesDir("Cache").toString()
+        contex = applicationContext
+
         setContent {
             NhentaiTheme {
                 // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
+
                     //Greeting("Android")
 
-                    ScreenInfo()
+                    val navController = rememberAnimatedNavController()
 
-                }
+                    ScreenInfo(navController)
+
+
+
+
+
+
+
+
+
+
+
+//                    AnimatedNavHost(
+//                        navController = navController,
+//                        startDestination = "info",
+//                        modifier = Modifier.background(Color.Black)
+//                    ) {
+////
+//                        composable("info",
+//                            enterTransition = { fadeIn(animationSpec = tween(0)) },
+//                            exitTransition = { fadeOut(animationSpec = tween(0)) })
+//                        {
+//                            ScreenInfo()
+//                        }
+////
+//////                        composable(Screen.Viewer.route+"?id={id}&currentPage={currentPage}&countPage={countPage}",
+//////                            enterTransition = { fadeIn(animationSpec = tween(0)) },
+//////                            exitTransition = { fadeOut(animationSpec = tween(0)) })
+//////                        {
+//////
+//////                            val id = it.arguments?.getString("id")?.toInt()
+//////                            val currentPage = it.arguments?.getString("currentPage")?.toInt()
+//////                            val countPage = it.arguments?.getString("countPage")?.toInt()
+//////
+//////                            if (id != null) {
+//////                                if (currentPage != null) {
+//////                                    if (countPage != null) {
+//////                                        ScreenViewer(navController, id, currentPage, countPage)
+//////                                    }
+//////                                }
+//////                            }
+//////                        }
+////
+////
+////
+//                   }
+
+
+
+
+
+
+
+
+
             }
         }
     }
