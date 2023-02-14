@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nhentai.DN
 import com.example.nhentai.api.readHtmlFromURL
 import com.example.nhentai.cache.cacheCheck
 import com.example.nhentai.cache.cacheFileCheck
@@ -25,7 +26,7 @@ class vmInfo @Inject constructor(
     //private val context: Context,
 ) : ViewModel() {
 
-    lateinit var DN: DynamicNHentai
+
 
     var ReedDataComplete  = mutableStateOf(false) //Признак того что данные прочитаны полностью
 
@@ -62,7 +63,7 @@ class vmInfo @Inject constructor(
 
 
     //Нажание на эскиз запросит OriginalUrl и сохранит его в кеш
-    fun launchReadOriginalImageFromHref(href : String) {
+    fun launchReadOriginalImageFromHref(href : String, index : Int) {
         Timber.i("...launchReadOriginalImageFromHref()")
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -76,6 +77,9 @@ class vmInfo @Inject constructor(
 
             Timber.i("Ok2")
             val OriginalURL = stringToUrlOriginal(html)
+
+            DN.thumbContainers[index].urlOriginal = OriginalURL
+
             Timber.i("OriginalURL = $OriginalURL")
 
             //Если нет файла то создадим для него кеш
@@ -83,9 +87,6 @@ class vmInfo @Inject constructor(
             {
                 cacheFileWrite(OriginalURL)
             }
-
-
-
 
         }
 

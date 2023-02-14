@@ -1,6 +1,5 @@
 package com.example.nhentai.screen.info
 
-
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,12 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import com.example.nhentai.Screen
+import com.example.nhentai.DN
 import com.example.nhentai.cache.URLtoFilePathFile
 import com.example.nhentai.cache.cacheFileCheck
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 fun flowLayoutMeasurePolicy() = MeasurePolicy { measurables, constraints ->
     layout(constraints.maxWidth, constraints.maxHeight) {
@@ -81,7 +78,11 @@ fun FlowLayout(
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(DelicateCoroutinesApi::class, ExperimentalLayoutApi::class)
 @Composable
-fun ScreenInfo(navController: NavHostController, id: Int = 403147, viewModel: vmInfo = hiltViewModel()) {
+fun ScreenInfo(
+    navController: NavHostController,
+    id: Int = 403147,
+    viewModel: vmInfo = hiltViewModel()
+) {
 
     DisposableEffect(key1 = viewModel) {
         //viewModel.startLogging()
@@ -117,14 +118,14 @@ fun ScreenInfo(navController: NavHostController, id: Int = 403147, viewModel: vm
                     AsyncImage(
                         modifier = Modifier
                             .fillMaxWidth(0.7f),
-                        model = viewModel.DN.urlCover,
+                        model = DN.urlCover,
                         contentDescription = null
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = viewModel.DN.h1.toString(), color = Color(0xFFD9D9D9))
+                Text(text = DN.h1.toString(), color = Color(0xFFD9D9D9))
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = viewModel.DN.h2.toString(), color = Color(0xFFD9D9D9))
+                Text(text = DN.h2.toString(), color = Color(0xFFD9D9D9))
                 Spacer(modifier = Modifier.height(8.dp))
 
                 FlowRow(
@@ -136,39 +137,29 @@ fun ScreenInfo(navController: NavHostController, id: Int = 403147, viewModel: vm
 
                 )
                 {
-
-                    for (i in viewModel.DN.thumbContainers) {
+                    DN.thumbContainers.forEachIndexed { index, i ->
 
                         //Поместить в кеш эскиз
                         viewModel.cacheThumbalis(i.url.toString())
 
-                        //Text(text = i.url.toString())
-
-                        val adress = if (!cacheFileCheck(i.url.toString()))
-                        {
+                        val address = if (!cacheFileCheck(i.url.toString())) {
                             i.url.toString()
-                        }
-                        else
-                        {
+                        } else {
                             URLtoFilePathFile(i.url.toString())
                         }
-
-                        adress
 
                         AsyncImage(
                             modifier = Modifier
                                 .fillMaxWidth(0.3f)
-                                .padding(top = 8.dp).clickable {
+                                .padding(top = 8.dp)
+                                .clickable {
                                     //Нажатие на иконку
-                                    viewModel.launchReadOriginalImageFromHref(i.href.toString())
+                                    viewModel.launchReadOriginalImageFromHref(i.href.toString(), index)
 
                                     //navController.navigate(Screen.Viewer.route+"?id={100}&currentPage={200}&countPage={300}")
-                                }
-                                ,
+                                },
 
-
-                            model = adress//i.url.toString()
-
+                            model = address//i.url.toString()
                             ,
                             contentDescription = null, contentScale = ContentScale.Crop
                         )

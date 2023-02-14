@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.nhentai.cache.HTTPCacheFolderPath
+import com.example.nhentai.model.DynamicNHentai
 import com.example.nhentai.parser.stringToDynamicHentai
 import com.example.nhentai.screen.info.ScreenInfo
 import com.example.nhentai.ui.theme.NhentaiTheme
@@ -30,6 +31,9 @@ sealed class Screen(val route: String) {
 
 @SuppressLint("StaticFieldLeak")
 lateinit var contex : Context
+
+lateinit var DN: DynamicNHentai
+
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalAnimationApi::class)
