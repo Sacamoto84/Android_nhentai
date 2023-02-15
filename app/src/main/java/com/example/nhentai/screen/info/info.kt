@@ -1,8 +1,14 @@
 package com.example.nhentai.screen.info
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.core.AnimationState
+import androidx.compose.animation.core.DecayAnimationSpec
+import androidx.compose.animation.core.animateDecay
+import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,14 +25,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.MeasurePolicy
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -34,6 +41,8 @@ import com.example.nhentai.DN
 import com.example.nhentai.cache.URLtoFilePathFile
 import com.example.nhentai.cache.cacheFileCheck
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.withContext
+import kotlin.math.abs
 
 fun flowLayoutMeasurePolicy() = MeasurePolicy { measurables, constraints ->
     layout(constraints.maxWidth, constraints.maxHeight) {
@@ -76,6 +85,60 @@ fun FlowLayout(
     )
 }
 
+
+@Composable
+fun flingBehavior(): FlingBehavior {
+    val flingSpec = rememberSplineBasedDecay<Float>()
+    return remember(flingSpec) {
+        DefaultFlingBehavior(flingSpec)
+    }
+}
+
+internal class DefaultFlingBehavior(
+    private val flingDecay: DecayAnimationSpec<Float>,
+    private val motionDurationScale: MotionDurationScale = DefaultScrollMotionDurationScale
+) : FlingBehavior {
+
+    // For Testing
+    var lastAnimationCycleCount = 0
+
+    override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
+        lastAnimationCycleCount = 0
+        // come up with the better threshold, but we need it since spline curve gives us NaNs
+        return withContext(motionDurationScale) {
+            if (abs(initialVelocity) > 1f) {
+                var velocityLeft = initialVelocity
+                var lastValue = 0f
+                AnimationState(
+                    initialValue = 0f,
+                    initialVelocity = initialVelocity,
+                ).animateDecay(flingDecay) {
+                    val delta = value - lastValue
+                    val consumed = scrollBy(delta)
+                    lastValue = value
+                    velocityLeft = this.velocity
+                    // avoid rounding errors and stop if anything is unconsumed
+                    if (abs(delta - consumed) > 0.5f) this.cancelAnimation()
+                    lastAnimationCycleCount++
+                }
+                velocityLeft
+            } else {
+                initialVelocity
+            }
+        }
+    }
+}
+
+internal val DefaultScrollMotionDurationScale = object : MotionDurationScale {
+    override val scaleFactor: Float
+        get() = DefaultScrollMotionDurationScaleFactor
+}
+
+private const val DefaultScrollMotionDurationScaleFactor = 0.5f
+
+
+
+
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(DelicateCoroutinesApi::class, ExperimentalLayoutApi::class)
 @Composable
@@ -84,6 +147,9 @@ fun ScreenInfo(
     viewModel: vmInfo = viewModel(),
     id: Int = 403147,
 ) {
+
+
+
 
     DisposableEffect(key1 = viewModel) {
         //viewModel.startLogging()
@@ -110,7 +176,7 @@ fun ScreenInfo(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(scrollState)
+                    .verticalScroll(state = scrollState, flingBehavior = flingBehavior())
             )
             {
 
@@ -128,6 +194,12 @@ fun ScreenInfo(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = DN.h2.toString(), color = Color(0xFFD9D9D9))
                 Spacer(modifier = Modifier.height(8.dp))
+
+
+
+
+
+
 
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),

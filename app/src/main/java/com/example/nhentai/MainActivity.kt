@@ -6,6 +6,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,6 +24,8 @@ import com.example.nhentai.screen.info.ScreenInfo
 import com.example.nhentai.screen.info.vmInfo
 import com.example.nhentai.screen.viewer.ScreenViewer
 import com.example.nhentai.ui.theme.NhentaiTheme
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -31,12 +36,12 @@ import timber.log.Timber.Forest.plant
 
 
 sealed class Screen(val route: String) {
-    object Info :     Screen("info")
-    object Viewer :   Screen("viewer")
+    object Info : Screen("info")
+    object Viewer : Screen("viewer")
 }
 
 @SuppressLint("StaticFieldLeak")
-lateinit var contex : Context
+lateinit var contex: Context
 
 lateinit var DN: DynamicNHentai
 
@@ -59,30 +64,32 @@ class MainActivity : ComponentActivity() {
 
                 //Greeting("Android")
 
-                //val navController = rememberAnimatedNavController()
+                val navController = rememberAnimatedNavController()
 
-
-                val navController = rememberNavController()
+                //val navController = rememberNavController()
 
 
                 //ScreenInfo(navController)
 
 
+                AnimatedNavHost(navController = navController, startDestination = "info") {
 
-
-
-                    NavHost(navController = navController, startDestination = "info") {
-
-                        composable("info") {
-                            ScreenInfo(navController)
-                        }
-
-                        composable("viewer") {
-                            ScreenViewer(navController)
-                        }
-
+                    composable("info",
+                        enterTransition = {fadeIn(animationSpec = tween(0)) },
+                        exitTransition = {fadeOut(animationSpec = tween(0)) })
+                    {
+                        ScreenInfo(navController)
                     }
 
+                    composable("viewer",
+                        enterTransition = { fadeIn(animationSpec = tween(0)) },
+                        exitTransition = { fadeOut(animationSpec = tween(0)) }
+                    )
+                    {
+                        ScreenViewer(navController)
+                    }
+
+                }
 
 
 //                    AnimatedNavHost(
@@ -119,13 +126,6 @@ class MainActivity : ComponentActivity() {
 ////
 ////
 //                   }
-
-
-
-
-
-
-
 
 
             }
