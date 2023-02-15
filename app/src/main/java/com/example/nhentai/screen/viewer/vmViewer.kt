@@ -31,6 +31,11 @@ class vmViewer @Inject constructor(
 
     var selectedPage by mutableStateOf("") //Номер выбранной страницы
 
+
+
+    //////////////////////////////////////////////////////
+    //Навигация
+
     //Создать адресс следующей картинки
     fun next() {
         Timber.i("next()")
@@ -40,7 +45,6 @@ class vmViewer @Inject constructor(
 
         calculateAddress()
     }
-
 
     //Создать адресс прошлой картинки
     fun previous() {
@@ -52,21 +56,32 @@ class vmViewer @Inject constructor(
         calculateAddress()
     }
 
+    //Создать адресс первой картинки
+    fun first() {
+        Timber.i("first()")
+        DN.selectedPage = 1
+        calculateAddress()
+    }
+
+
+    fun last() {
+        Timber.i("last()")
+        DN.selectedPage = DN.num_pages.toInt()
+        calculateAddress()
+    }
+
 
     fun calculateAddress() {
         Timber.i("calculateAddress()")
         val url = DN.thumbContainers[DN.selectedPage - 1].urlOriginal.toString()
-
         address = if (!cacheFileCheck(url)) {
             url
         } else {
             URLtoFilePathFile(url)
         }
-
         selectedPage = DN.selectedPage.toString()
-
     }
-
+//////////////////////////////////////////////////////
 
     //Нажание на эскиз запросит OriginalUrl и сохранит его в кеш
     fun launchReadOriginalImageFromHref(href: String, index: Int) {

@@ -10,6 +10,7 @@ import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateRotation
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.forEachGesture
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -187,20 +188,26 @@ fun ScreenViewer(navController: NavHostController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(40.dp)
-                .background(Color.Transparent)
+                .background(Color(0x801F1F1F))
         )
         {
 
-            Row() {
-                Button(onClick = { viewModel.previous() }) {
+            Row( modifier = Modifier
+                .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
 
+                Button(onClick = { viewModel.first() }) {
+                }
+                Button(onClick = { viewModel.previous() }) {
                 }
 
 
-                Text(text = viewModel.selectedPage + " / " + DN.num_pages.toString())
+                Text(text = viewModel.selectedPage + " / " + DN.num_pages.toString(), color = Color(0xFFC3C3C3))
 
 
                 Button(onClick = { viewModel.next() }) {
+
+                }
+                Button(onClick = { viewModel.last() }) {
 
                 }
             }
