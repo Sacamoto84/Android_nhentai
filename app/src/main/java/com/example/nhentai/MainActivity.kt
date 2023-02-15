@@ -20,6 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.nhentai.cache.HTTPCacheFolderPath
 import com.example.nhentai.model.DynamicNHentai
 import com.example.nhentai.parser.stringToDynamicHentai
+import com.example.nhentai.screen.info.Info
 import com.example.nhentai.screen.info.ScreenInfo
 import com.example.nhentai.screen.info.vmInfo
 import com.example.nhentai.screen.viewer.ScreenViewer
@@ -33,17 +34,6 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import timber.log.Timber.*
 import timber.log.Timber.Forest.plant
-
-
-sealed class Screen(val route: String) {
-    object Info : Screen("info")
-    object Viewer : Screen("viewer")
-}
-
-@SuppressLint("StaticFieldLeak")
-lateinit var contex: Context
-
-lateinit var DN: DynamicNHentai
 
 
 class MainActivity : ComponentActivity() {
@@ -68,9 +58,7 @@ class MainActivity : ComponentActivity() {
 
                 //val navController = rememberNavController()
 
-
                 //ScreenInfo(navController)
-
 
                 AnimatedNavHost(navController = navController, startDestination = "info") {
 
@@ -78,7 +66,7 @@ class MainActivity : ComponentActivity() {
                         enterTransition = {fadeIn(animationSpec = tween(0)) },
                         exitTransition = {fadeOut(animationSpec = tween(0)) })
                     {
-                        ScreenInfo(navController)
+                        Info(navController)
                     }
 
                     composable("viewer",
@@ -132,46 +120,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-
-@OptIn(DelicateCoroutinesApi::class)
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-
-
-    Button(onClick = {
-
-
-        GlobalScope.launch {
-
-            //val aa = readHtmlFromURL()
-            val a = stringToDynamicHentai(html)
-            a
-
-        }
-
-
-    })
-
-    {
-
-//        AsyncImage(
-//            model = "https://img.dogehls.xyz/galleries/2220556/1.png",
-//            contentDescription = null
-//        )
-
-
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    NhentaiTheme {
-        Greeting("Android")
-    }
-}
-
 
 val html = """
     <!doctype html>

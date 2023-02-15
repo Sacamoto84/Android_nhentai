@@ -26,44 +26,61 @@ class vmInfo @Inject constructor(
     //private val context: Context,
 ) : ViewModel() {
 
+    init {
+        Timber.i("Создание вьюмодели vmInfo")
+    }
 
+    var ReedDataComplete = mutableStateOf(false) //Признак того что данные прочитаны полностью
 
-    var ReedDataComplete  = mutableStateOf(false) //Признак того что данные прочитаны полностью
-
-
-  fun cacheThumbalis(url : String)
-  {
-      viewModelScope.launch(Dispatchers.IO) {
-          //Если нет файла то создадим для него кеш
-          if (!cacheFileCheck(url))
-          {
-              cacheFileWrite(url)
-          }
-      }
-  }
-
-
-
-
-
+    var IndexirovanieComplete = mutableStateOf(false)
 
     ////////////////////////////////////////////////////////
-    fun launchReadFromId(id : Int = 403147) {
-        Timber.i("...launchReadFromId()")
+    fun launchIndexirovanieOriginal() {
+        Timber.i("...Запуск Индексирования")
+
+        IndexirovanieComplete.value = false
+
+        DN.thumbContainers.forEachIndexed { index, i ->
+            Timber.i("...Индексирование index:$index href:${i.href.toString()}")
+            viewModelScope.launch(Dispatchers.IO) {
+                launchReadOriginalImageFromHref(i.href.toString(), index)
+            }
+        }
+
+    }
+
+
+    fun cacheThumbalis(url: String) {
+        Timber.i("...cacheThumbalis")
+        viewModelScope.launch(Dispatchers.IO) {
+            //Если нет файла то создадим для него кеш
+            if (!cacheFileCheck(url)) {
+                cacheFileWrite(url)
+            }
+        }
+    }
+
+    ////////////////////////////////////////////////////////
+    fun launchReadFromId(id: Int = 403147) {
+        Timber.i("...launchReadFromId() $id")
         ReedDataComplete.value = false
         viewModelScope.launch(Dispatchers.IO) {
             Timber.i("Ok1")
             val html = readHtmlFromURL("https://nhentai.to/g/$id")
             Timber.i("Ok2")
+
             DN = stringToDynamicHentai(html)
+
             Timber.i("Ok3")
             ReedDataComplete.value = true
+
+            launchIndexirovanieOriginal()
         }
     }
 
 
     //Нажание на эскиз запросит OriginalUrl и сохранит его в кеш
-    fun launchReadOriginalImageFromHref(href : String, index : Int) {
+    fun launchReadOriginalImageFromHref(href: String, index: Int) {
         Timber.i("...launchReadOriginalImageFromHref()")
 
         viewModelScope.launch(Dispatchers.IO) {
@@ -84,15 +101,13 @@ class vmInfo @Inject constructor(
             Timber.i("OriginalURL = $OriginalURL")
 
             //Если нет файла то создадим для него кеш
-            if (OriginalURL?.let { cacheFileCheck(it) } == false)
-            {
+            if (OriginalURL?.let { cacheFileCheck(it) } == false) {
                 cacheFileWrite(OriginalURL)
             }
 
         }
 
     }
-
 
 
 }

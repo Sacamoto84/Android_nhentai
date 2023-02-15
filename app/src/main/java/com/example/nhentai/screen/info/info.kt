@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,10 +23,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.MotionDurationScale
@@ -42,6 +48,7 @@ import com.example.nhentai.cache.URLtoFilePathFile
 import com.example.nhentai.cache.cacheFileCheck
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import kotlin.math.abs
 
 fun flowLayoutMeasurePolicy() = MeasurePolicy { measurables, constraints ->
@@ -138,6 +145,49 @@ private const val DefaultScrollMotionDurationScaleFactor = 0.5f
 
 
 
+var iid by mutableStateOf(403148)
+
+@SuppressLint("CoroutineCreationDuringComposition")
+@OptIn(DelicateCoroutinesApi::class, ExperimentalLayoutApi::class)
+@Composable
+fun Info(
+    navController: NavHostController,
+    id: Int = 403147,
+) {
+
+    Column() {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .weight(1f))
+        {
+            ScreenInfo(navController, id = {iid})
+        }
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .background(Color.Red))
+        {
+
+            Row() {
+
+                Button(onClick = { iid-=1 }) {
+                    Text(text = "-" )
+                }
+
+                Text(text = "$iid" )
+
+                Button(onClick = { iid+=1 }) {
+                    Text(text = "+" )
+                }
+            }
+
+
+
+        }
+    }
+
+}
+
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(DelicateCoroutinesApi::class, ExperimentalLayoutApi::class)
@@ -145,21 +195,17 @@ private const val DefaultScrollMotionDurationScaleFactor = 0.5f
 fun ScreenInfo(
     navController: NavHostController,
     viewModel: vmInfo = viewModel(),
-    id: Int = 403147,
+    id: ()->Int,
 ) {
 
+Timber.i("ScreenInfo id ${id()}")
 
 
-
-    DisposableEffect(key1 = viewModel) {
+    LaunchedEffect(key1 = id()) {
         //viewModel.startLogging()
+        Timber.i("ScreenInfo DisposableEffect")
+        viewModel.launchReadFromId(id())
 
-        viewModel.launchReadFromId()
-
-
-        onDispose {
-            //viewModel.stopAndLogTime()
-        }
     }
 
     if (viewModel.ReedDataComplete.value) {
@@ -192,7 +238,12 @@ fun ScreenInfo(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = DN.h1.toString(), color = Color(0xFFD9D9D9))
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = DN.h2.toString(), color = Color(0xFFD9D9D9))
+                //Text(text = DN.h2.toString(), color = Color(0xFFD9D9D9))
+
+                Button(onClick = { viewModel.launchIndexirovanieOriginal() }) {
+                    Text(text = "Индексирование" )
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
 
@@ -227,7 +278,10 @@ fun ScreenInfo(
                                 .padding(top = 8.dp)
                                 .clickable {
                                     //Нажатие на иконку
-                                    viewModel.launchReadOriginalImageFromHref(i.href.toString(), index)
+                                    viewModel.launchReadOriginalImageFromHref(
+                                        i.href.toString(),
+                                        index
+                                    )
                                     DN.selectedPage = index + 1
 
                                     navController.navigate("viewer") //По нажатию открываем viewer
@@ -250,9 +304,9 @@ fun ScreenInfo(
     } else {
         Box(
             modifier = Modifier
-                .size(100.dp)
-                .background(Color.Gray)
-        )
+                .fillMaxSize()
+                .background(Color(0xFF1F1F1F)))
+
         {
 
         }

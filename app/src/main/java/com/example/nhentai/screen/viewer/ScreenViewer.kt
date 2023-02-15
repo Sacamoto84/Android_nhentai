@@ -3,18 +3,22 @@ package com.example.nhentai.screen.viewer
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
 import androidx.compose.foundation.gestures.calculateCentroidSize
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateRotation
 import androidx.compose.foundation.gestures.calculateZoom
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -27,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
@@ -35,19 +38,20 @@ import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.util.fastAny
+import androidx.compose.ui.util.fastForEach
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import com.example.nhentai.DN
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.lang.Math.max
 import java.text.DecimalFormat
 import kotlin.math.PI
 import kotlin.math.abs
-import androidx.compose.ui.util.fastAny
-import androidx.compose.ui.util.fastForEach
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import timber.log.Timber
 
 var scale = mutableStateOf(1.0f)
 var offset = mutableStateOf(Offset(0f, 0f))
@@ -61,18 +65,14 @@ fun ScreenViewer(navController: NavHostController) {
     val scope = rememberCoroutineScope()
     val zoomState = rememberZoomState(4f)
 
-
-
-    //Если нет адреса оригинала
-    if (DN.thumbContainers[DN.selectedPage - 1].urlOriginal.isNullOrEmpty()) {
-        viewModel.launchReadOriginalImageFromHref(
-            DN.thumbContainers[DN.selectedPage - 1].href.toString(),
-            DN.selectedPage - 1
-        )
-
-    }
-
-
+//    //Если нет адреса оригинала
+//    if (DN.thumbContainers[DN.selectedPage - 1].urlOriginal.isNullOrEmpty()) {
+//        viewModel.launchReadOriginalImageFromHref(
+//            DN.thumbContainers[DN.selectedPage - 1].href.toString(),
+//            DN.selectedPage - 1
+//        )
+//
+//    }
 
     var offset by remember { mutableStateOf(Offset.Zero) }
     var centroid by remember { mutableStateOf(Offset.Zero) }
@@ -80,63 +80,64 @@ fun ScreenViewer(navController: NavHostController) {
 
     val decimalFormat = remember { DecimalFormat("0.0") }
 
-    Box(
+    Column(
         modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF1F1F1F)),
-        contentAlignment = Alignment.Center
-    )
-    {
+            .fillMaxSize().background(Color(0xFF1F1F1F))
+    ) {
 
-        if (DN.thumbContainers[DN.selectedPage - 1].urlOriginal != null) {
-            val url = DN.thumbContainers[DN.selectedPage - 1].urlOriginal.toString()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(1f)
+                .background(Color(0xFF1F1F1F)),
+            contentAlignment = Alignment.Center
+        )
+        {
 
-//            val address = if (!cacheFileCheck(url)) {
-//                url
-//            } else {
-//                url //URLtoFilePathFile(url)
-//            }
-            //Timber.i("scale2 ${scale.value} ${offset.value}")
+            if (DN.thumbContainers[DN.selectedPage - 1].urlOriginal != null) {
 
-            SubcomposeAsyncImage(
-                model = url, //address,
-                loading = {
-                    CircularProgressIndicator(color = Color.White)
-                },
-                contentDescription = "stringResource(R.string.description)",
-                contentScale = ContentScale.Fit,
-                onSuccess = {
-                    val p = it.painter.intrinsicSize
-                    zoomState.setImageSize(Size(p.width, p.height))
+                viewModel.calculateAddress()
 
-                },
+                //Timber.i("scale2 ${scale.value} ${offset.value}")
 
-                modifier = Modifier
-                    .fillMaxSize()
-                    .onSizeChanged { size ->
-                        zoomState.setLayoutSize(size.toSize())
-                    }
-                    .pointerInput(Unit) {
+                SubcomposeAsyncImage(
+                    model = viewModel.address,
+                    loading = {
+                        CircularProgressIndicator(color = Color.White)
+                    },
+                    contentDescription = "stringResource(R.string.description)",
+                    contentScale = ContentScale.Fit,
+                    onSuccess = {
+                        val p = it.painter.intrinsicSize
+                        zoomState.setImageSize(Size(p.width, p.height))
 
-                        detectTransformGestures(
-                            onGesture = { centroid, pan, zoom, _, timeMillis ->
-                                scope.launch {
-                                    zoomState.applyGesture(
-                                        pan = pan,
-                                        zoom = zoom,
-                                        position = centroid,
-                                        timeMillis = timeMillis,
-                                        centroid
-                                    )
+                    },
+
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .onSizeChanged { size ->
+                            zoomState.setLayoutSize(size.toSize())
+                        }
+                        .pointerInput(Unit) {
+
+                            detectTransformGestures(
+                                onGesture = { centroid, pan, zoom, _, timeMillis ->
+                                    scope.launch {
+                                        zoomState.applyGesture(
+                                            pan = pan,
+                                            zoom = zoom,
+                                            position = centroid,
+                                            timeMillis = timeMillis,
+                                            centroid
+                                        )
+                                    }
+                                },
+                                onGestureEnd = {
+                                    scope.launch {
+                                        zoomState.endGesture()
+                                    }
                                 }
-                            },
-                            onGestureEnd = {
-                                scope.launch {
-                                    zoomState.endGesture()
-                                }
-                            }
-                        )
-
+                            )
 
 
 //                        detectTransformGestures(
@@ -149,16 +150,16 @@ fun ScreenViewer(navController: NavHostController) {
 //                                //centroid = gestureCentroid
 //                            }
 //                        )
-                    }
-                    .graphicsLayer {
+                        }
+                        .graphicsLayer {
 
-                        scaleX = zoomState.scale
-                        scaleY = zoomState.scale
-                        //translationX = zoomState.offsetX
-                        //translationY = zoomState.offsetY
+                            scaleX = zoomState.scale
+                            scaleY = zoomState.scale
+                            //translationX = zoomState.offsetX
+                            //translationY = zoomState.offsetY
 
-                        translationX = zoomState.offsetX //* zoom1
-                        translationY = zoomState.offsetY //* zoom1
+                            translationX = zoomState.offsetX //* zoom1
+                            translationY = zoomState.offsetY //* zoom1
 
 //                        translationX = -offset.x * zoom
 //                        translationY = -offset.y * zoom
@@ -166,25 +167,50 @@ fun ScreenViewer(navController: NavHostController) {
 
 //                        scaleX = zoom
 //                        scaleY = zoom
-                         //TransformOrigin(0f, 0f).also { transformOrigin = it }
-                    }
+                            //TransformOrigin(0f, 0f).also { transformOrigin = it }
+                        }
 
-            )
+                )
 
 
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Magenta)
-            )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Magenta)
+                )
+            }
+
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .background(Color.Transparent)
+        )
+        {
+
+            Row() {
+                Button(onClick = { viewModel.previous() }) {
+
+                }
+
+
+                Text(text = viewModel.selectedPage + " / " + DN.num_pages.toString())
+
+
+                Button(onClick = { viewModel.next() }) {
+
+                }
+            }
+
         }
 
     }
 
 
 }
-
 
 
 suspend fun PointerInputScope.detectTransformGestures(
@@ -194,6 +220,8 @@ suspend fun PointerInputScope.detectTransformGestures(
     onGestureEnd: () -> Unit = {},
 ) {
     forEachGesture {
+
+
         awaitPointerEventScope {
             var rotation = 0f
             var zoom = 1f
@@ -238,7 +266,13 @@ suspend fun PointerInputScope.detectTransformGestures(
                             zoomChange != 1f ||
                             panChange != Offset.Zero
                         ) {
-                            onGesture(centroid, panChange, zoomChange, effectiveRotation, event.changes[0].uptimeMillis)
+                            onGesture(
+                                centroid,
+                                panChange,
+                                zoomChange,
+                                effectiveRotation,
+                                event.changes[0].uptimeMillis
+                            )
                         }
                         event.changes.fastForEach {
                             if (it.positionChanged()) {
@@ -252,7 +286,6 @@ suspend fun PointerInputScope.detectTransformGestures(
         }
     }
 }
-
 
 
 @Stable
@@ -331,12 +364,7 @@ class ZoomState(private val maxScale: Float) {
             //_offsetX.snapTo( f )
         }
 
-
-
         //offset = (offset + gestureCentroid / oldScale) - (gestureCentroid / newScale + gesturePan / oldScale)
-
-
-
 
         val boundY = max((fitImageSize.height * _scale.value - layoutSize.height), 0f) / 2f
         _offsetY.updateBounds(-boundY, boundY)
@@ -361,10 +389,8 @@ class ZoomState(private val maxScale: Float) {
 
     suspend fun endGesture() = coroutineScope {
 
-
-
         if (shouldFling) {
-            val velocity = velocityTracker.calculateVelocity()/2f
+            val velocity = velocityTracker.calculateVelocity() / 2f
             Timber.i("velocity $velocity")
             launch {
                 _offsetX.animateDecay(velocity.x, velocityDecay)
@@ -388,7 +414,6 @@ class ZoomState(private val maxScale: Float) {
         }
     }
 }
-
 
 
 @Composable
