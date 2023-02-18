@@ -1,7 +1,5 @@
 package com.example.nhentai
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,41 +7,86 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.material3.Button
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nhentai.cache.HTTPCacheFolderPath
-import com.example.nhentai.model.DynamicNHentai
-import com.example.nhentai.parser.stringToDynamicHentai
 import com.example.nhentai.screen.info.Info
-import com.example.nhentai.screen.info.ScreenInfo
 import com.example.nhentai.screen.info.vmInfo
 import com.example.nhentai.screen.viewer.ScreenViewer
+import com.example.nhentai.screen.viewer.vmViewer
 import com.example.nhentai.ui.theme.NhentaiTheme
+import com.github.ajalt.mordant.TermColors
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.jakewharton.picnic.BorderStyle
+import com.jakewharton.picnic.TextAlignment
+import com.jakewharton.picnic.TextBorder.Companion.ROUNDED
+import com.jakewharton.picnic.renderText
+import com.jakewharton.picnic.table
+import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import timber.log.Timber.*
 import timber.log.Timber.Forest.plant
 
-
+//@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalAnimationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
+
         plant(DebugTree())
 
         Timber.i("Hello")
+
+        println(
+            table {
+                style {
+                    borderStyle = BorderStyle.Hidden
+                }
+                cellStyle {
+                    alignment = TextAlignment.MiddleRight
+                    paddingLeft = 1
+                    paddingRight = 1
+                    borderLeft = true
+                    borderRight = true
+                }
+                header {
+                    cellStyle {
+                        border = true
+                        alignment = TextAlignment.BottomLeft
+                    }
+                    row {
+                        cell("APK") {
+                            rowSpan = 2
+                        }
+                        cell("compressed") {
+                            alignment = TextAlignment.BottomCenter
+                            columnSpan = 3
+                        }
+                        cell("uncompressed") {
+                            alignment = TextAlignment.BottomCenter
+                            columnSpan = 3
+                        }
+                    }
+                    row("old", "new", "diff", "old", "new", "diff")
+                }
+                body {
+                    row("dex", "664.8 KiB", "664.8 Kib", "-25 B", "1.5 MiB", "1.5 MiB", "-112 B")
+                    // "arsc", "manifest", etc…
+                }
+                footer {
+                    cellStyle {
+                        border = true
+                    }
+                    row("total", "1.3 MiB", "1.3 MiB", "-39 B", "2.2 MiB", "2.2 MiB", "-112 B")
+                }
+            }.renderText(border = ROUNDED)
+        )
+
+
 
         HTTPCacheFolderPath = applicationContext.getExternalFilesDir("Cache").toString()
         contex = applicationContext
@@ -66,7 +109,11 @@ class MainActivity : ComponentActivity() {
                         enterTransition = {fadeIn(animationSpec = tween(0)) },
                         exitTransition = {fadeOut(animationSpec = tween(0)) })
                     {
-                        Info(navController)
+
+                        val viewModel  = hiltViewModel<vmInfo>()
+                        println(viewModel)
+                        Info(navController = navController, viewModel = viewModel)
+
                     }
 
                     composable("viewer",
@@ -74,7 +121,11 @@ class MainActivity : ComponentActivity() {
                         exitTransition = { fadeOut(animationSpec = tween(0)) }
                     )
                     {
-                        ScreenViewer(navController)
+
+                        val viewModel  = hiltViewModel<vmViewer>()
+                        println(viewModel)
+                        ScreenViewer(navController, viewModel)
+
                     }
 
                 }

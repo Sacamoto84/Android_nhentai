@@ -46,6 +46,7 @@ import coil.compose.AsyncImage
 import com.example.nhentai.DN
 import com.example.nhentai.cache.URLtoFilePathFile
 import com.example.nhentai.cache.cacheFileCheck
+import com.example.nhentai.screen.viewer.vmViewer
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -152,7 +153,9 @@ var iid by mutableStateOf(403148)
 @Composable
 fun Info(
     navController: NavHostController,
+    viewModel: vmInfo,
     id: Int = 403147,
+
 ) {
 
     Column() {
@@ -160,7 +163,7 @@ fun Info(
             .fillMaxSize()
             .weight(1f))
         {
-            ScreenInfo(navController, id = {iid})
+            ScreenInfo(navController, viewModel = viewModel, id = {iid})
         }
         Box(modifier = Modifier
             .fillMaxWidth()
@@ -194,7 +197,7 @@ fun Info(
 @Composable
 fun ScreenInfo(
     navController: NavHostController,
-    viewModel: vmInfo = viewModel(),
+    viewModel: vmInfo,
     id: ()->Int,
 ) {
 
@@ -284,7 +287,20 @@ Timber.i("ScreenInfo id ${id()}")
                                     )
                                     DN.selectedPage = index + 1
 
-                                    navController.navigate("viewer") //По нажатию открываем viewer
+                                    navController.navigate("viewer",
+
+//                                        builder = {
+//
+//                                            popUpTo("info") {
+//                                                inclusive = true
+//                                            }
+//
+//                                        }
+
+
+
+                                    ) //По нажатию открываем viewer
+
                                 },
 
                             model = address//i.url.toString()

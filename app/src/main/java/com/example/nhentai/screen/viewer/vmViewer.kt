@@ -26,12 +26,14 @@ class vmViewer @Inject constructor(
         Timber.i("Создание вьюмодели vmViewer")
     }
 
-
     var address by mutableStateOf("") //Адресс показываемой картинки
 
     var selectedPage by mutableStateOf("") //Номер выбранной страницы
 
-
+    override fun onCleared() {
+        super.onCleared()
+        Timber.i("................onCleared")
+    }
 
     //////////////////////////////////////////////////////
     //Навигация

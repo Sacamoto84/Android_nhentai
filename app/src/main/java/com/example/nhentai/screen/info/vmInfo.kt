@@ -30,6 +30,14 @@ class vmInfo @Inject constructor(
         Timber.i("Создание вьюмодели vmInfo")
     }
 
+    override fun onCleared() {
+        super.onCleared()
+       Timber.i("................onCleared")
+    }
+
+
+
+
     var ReedDataComplete = mutableStateOf(false) //Признак того что данные прочитаны полностью
 
     var IndexirovanieComplete = mutableStateOf(false)
@@ -65,13 +73,13 @@ class vmInfo @Inject constructor(
         Timber.i("...launchReadFromId() $id")
         ReedDataComplete.value = false
         viewModelScope.launch(Dispatchers.IO) {
-            Timber.i("Ok1")
+            //Timber.i("Ok1")
             val html = readHtmlFromURL("https://nhentai.to/g/$id")
-            Timber.i("Ok2")
+            //Timber.i("Ok2")
 
             DN = stringToDynamicHentai(html)
 
-            Timber.i("Ok3")
+            //Timber.i("Ok3")
             ReedDataComplete.value = true
 
             launchIndexirovanieOriginal()
@@ -85,7 +93,7 @@ class vmInfo @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
 
-            Timber.i("Ok1")
+            //Timber.i("Ok1")
             var s = "https://nhentai.to${href}"
 
             if (s.last() == '/')
@@ -93,7 +101,7 @@ class vmInfo @Inject constructor(
 
             val html = readHtmlFromURL(s)
 
-            Timber.i("Ok2")
+            //Timber.i("Ok2")
             val OriginalURL = stringToUrlOriginal(html)
 
             DN.thumbContainers[index].urlOriginal = OriginalURL

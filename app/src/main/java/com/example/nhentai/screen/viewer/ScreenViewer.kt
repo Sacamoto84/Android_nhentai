@@ -46,6 +46,7 @@ import androidx.compose.ui.util.fastForEach
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import com.example.nhentai.DN
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -60,8 +61,8 @@ var zoom1 by mutableStateOf(1f)
 
 
 @Composable
-fun ScreenViewer(navController: NavHostController) {
-    val viewModel = vmViewer()
+fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
+
 
     val scope = rememberCoroutineScope()
     val zoomState = rememberZoomState(4f)
@@ -195,7 +196,13 @@ fun ScreenViewer(navController: NavHostController) {
             Row( modifier = Modifier
                 .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
 
-                Button(onClick = { viewModel.first() }) {
+                Button(onClick = {
+                    val a = 5
+                    val b = a/0
+b
+                    viewModel.first()
+
+                }) {
                 }
                 Button(onClick = { viewModel.previous() }) {
                 }
