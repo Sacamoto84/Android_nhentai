@@ -8,14 +8,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nhentai.cache.HTTPCacheFolderPath
 import com.example.nhentai.screen.info.Info
 import com.example.nhentai.screen.info.vmInfo
 import com.example.nhentai.screen.viewer.ScreenViewer
 import com.example.nhentai.screen.viewer.vmViewer
 import com.example.nhentai.ui.theme.NhentaiTheme
-import com.github.ajalt.mordant.TermColors
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
@@ -29,13 +27,16 @@ import timber.log.Timber
 import timber.log.Timber.*
 import timber.log.Timber.Forest.plant
 
-//@AndroidEntryPoint
+//val lruCache = DiskLruCache.open(
+//    directory = cacheDir,
+//    maxSize = 10 * 1024 * 1024, // 10 MB
+//)
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalAnimationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
 
         plant(DebugTree())
 

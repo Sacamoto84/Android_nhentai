@@ -11,6 +11,7 @@ import com.example.nhentai.cache.URLtoFilePathFile
 import com.example.nhentai.cache.cacheFileCheck
 import com.example.nhentai.cache.cacheFileWrite
 import com.example.nhentai.parser.stringToUrlOriginal
+import com.jakewharton.picnic.table
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,7 +24,14 @@ class vmViewer @Inject constructor(
 ) : ViewModel() {
 
     init {
-        Timber.i("Создание вьюмодели vmViewer")
+         Timber.i(
+            table {
+                cellStyle {
+                    border = true
+                }
+                row("Создание вьюмодели vmViewer")
+            }.toString()
+        )
     }
 
     var address by mutableStateOf("") //Адресс показываемой картинки
@@ -32,7 +40,14 @@ class vmViewer @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        Timber.i("................onCleared")
+        Timber.i(
+            table {
+                cellStyle {
+                    border = true
+                }
+                row("................onCleared")
+            }.toString()
+        )
     }
 
     //////////////////////////////////////////////////////
