@@ -41,9 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.nhentai.DN
-import com.example.nhentai.cache.URLtoFilePathFile
-import com.example.nhentai.cache.cacheFileCheck
+import com.example.nhentai.cache.URLtoFilePath
+import com.example.nhentai.cache.cacheCheck
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlin.math.abs
@@ -140,12 +143,9 @@ internal val DefaultScrollMotionDurationScale = object : MotionDurationScale {
 
 private const val DefaultScrollMotionDurationScaleFactor = 0.5f
 
-
-
 var iid by mutableStateOf(403148)
 
 @SuppressLint("CoroutineCreationDuringComposition")
-@OptIn(DelicateCoroutinesApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun Info(
     navController: NavHostController,
@@ -265,11 +265,19 @@ Timber.i("ScreenInfo id ${id()}")
                         //Поместить в кеш эскиз
                         viewModel.cacheThumbalis(i.url.toString())
 
-                        val address = if (!cacheFileCheck(i.url.toString())) {
-                            i.url.toString()
-                        } else {
-                            URLtoFilePathFile(i.url.toString())
+                        val address =
+                        runBlocking {
+
+                            if (!cacheCheck(i.url.toString())) {
+                                i.url.toString()
+                            } else {
+                                URLtoFilePath(i.url.toString())
+                            }
+
                         }
+
+
+
 
                         AsyncImage(
                             modifier = Modifier

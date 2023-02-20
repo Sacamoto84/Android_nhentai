@@ -1,28 +1,42 @@
 package com.example.nhentai.cache
 
 import com.example.nhentai.contex
+import com.example.nhentai.disklrucache.DiskLruCache
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.prepareGet
 import io.ktor.http.contentLength
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.isEmpty
 import io.ktor.utils.io.core.readBytes
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.File
 
 lateinit var HTTPCacheFolderPath: String //Корневая папка где лежит кеш
 
-fun URLtoFilePath(url: String): String {
-    val str = url.substringAfter("://")
-    if (str.last() == '/')
-        str.dropLast(1)
-    val srcFolderPath = contex.getExternalFilesDir("/Cache/$str")
-    return srcFolderPath.toString() + "/${str.substringAfterLast('/')}"
+lateinit var lruCache: DiskLruCache
+
+//fun URLtoFilePath(url: String): String {
+//    val str = url.substringAfter("://")
+//    if (str.last() == '/')
+//        str.dropLast(1)
+//    val srcFolderPath = contex.getExternalFilesDir("/Cache/$str")
+//    return srcFolderPath.toString() + "/${str.substringAfterLast('/')}"
+//}
+
+
+// Версия DiskLruCache
+suspend fun URLtoFilePath(url: String): String {
+    return lruCache.getIfAvailable(url).toString()
 }
+
 
 fun filePath(str: String): String {
     val srcFolderPath = contex.getExternalFilesDir("/Cache/$str")
@@ -31,89 +45,139 @@ fun filePath(str: String): String {
 
 //Проверить адресс есть ли в кеше
 //Возвращает bool
-fun cacheCheck(url: String): Boolean {
-    Timber.i("..cacheCheck $url")
-    val result = isFileExists(File(URLtoFilePath(url)))
-    Timber.i("..cacheCheck result: $result")
-    return result
+suspend fun cacheCheck(url: String): Boolean {
+    var result: Boolean = false
+    var result2: Boolean = false
+
+    try {
+        result = lruCache.getIfAvailable(url) != null
+        result2 = if (result) {
+            isFileExists(File(URLtoFilePath(url)))
+        } else false
+    } catch (e: Exception) {
+        Timber.i(e.message)
+    }
+
+    Timber.i("..cacheCheck result:$result result2:$result2 url:$url")
+    return result && result2
 }
 
 fun isFileExists(file: File): Boolean {
-     return file.exists() && !file.isDirectory
+    return file.exists() && !file.isDirectory
 }
 
 //Запись в кеш HTML страницу
-fun cacheHTMLWrite(url: String, html: String) {
+suspend fun cacheHTMLWrite(url: String, html: String) {
     Timber.i("..cacheHTMLWrite $url")
-    val file = File(URLtoFilePath(url))
     try {
-        file.writeText(html)
+        lruCache.put(url) {
+            //Timber.i("cacheHTMLWrite 11111111 it $it")
+            File(it).writeText(html)
+            true
+        }
     } catch (e: Exception) {
         Timber.e(e.message)
     }
 }
 
 //Чтение из кеша HTML страницы
-fun cacheHTMLRead(url: String): String {
+suspend fun cacheHTMLRead(url: String): String {
     Timber.i("..cacheHTMLRead")
-    val file = File(URLtoFilePath(url))
-    return file.readText()
+    val file = lruCache.getIfAvailable(url)?.let { File(it) }
+    return file?.readText() ?: ""
 }
-
-
-
-
-
-
-
-
-
 
 
 ////////////////////////////////////////////////////
 // Файлы не Html
 ////////////////////////////////////////////////////
 
-fun URLtoFilePathFile(url: String): String {
-    val str = url.substringAfter("://")
-    if (str.last() == '/')
-        str.dropLast(1)
+//fun URLtoFilePathFile(url: String): String {
+//    val str = url.substringAfter("://")
+//    if (str.last() == '/')
+//        str.dropLast(1)
+//
+//    return contex.getExternalFilesDir("/Cache/${str.substringBeforeLast('/')}")
+//        .toString() + "/" + str.substringAfterLast('/')
+//}
 
-    return contex.getExternalFilesDir("/Cache/${str.substringBeforeLast('/')}")
-        .toString() + "/" + str.substringAfterLast('/')
-}
-
-//Проверить адресс есть ли в кеше
-//Возвращает bool
-fun cacheFileCheck(url: String): Boolean {
-    Timber.i("..cacheCheck $url")
-    val result = isFileExists(File(URLtoFilePathFile(url)))
-    Timber.i("..cacheCheck result: $result")
-    return result
-}
+////Проверить адресс есть ли в кеше
+////Возвращает bool
+//fun cacheFileCheck(url: String): Boolean {
+//    Timber.i("..cacheCheck $url")
+//    val result = isFileExists(File(URLtoFilePathFile(url)))
+//    Timber.i("..cacheCheck result: $result")
+//    return result
+//}
 
 //Запись в кеш Файл
+@OptIn(DelicateCoroutinesApi::class)
 fun cacheFileWrite(url: String) {
     Timber.i("..cacheFileWrite $url")
-    val file = File(URLtoFilePathFile(url))
-    GlobalScope.launch {
+
+    // Создаем временный файл
+    //val tempFile = File.createTempFile("TempFile", ".tmp")
+
+
+    val list: MutableList<Byte> = mutableListOf()
+
+    GlobalScope.launch(Dispatchers.IO) {
         val client = HttpClient(CIO)
+        {
+            install(HttpTimeout)
+            {
+                requestTimeoutMillis = 60000
+            }
+        }
         client.prepareGet(url).execute { httpResponse ->
             val channel: ByteReadChannel = httpResponse.body()
-            while (!channel.isClosedForRead) {
-                val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-                while (!packet.isEmpty) {
-                    val bytes = packet.readBytes()
 
-                    file.appendBytes(bytes)
+            try {
 
-                    Timber.i("Received ${file.length()} bytes from ${httpResponse.contentLength()}")
+                while (!channel.isClosedForRead) {
+                    val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+
+                    while (!packet.isEmpty) {
+                        val bytes = packet.readBytes()
+
+                        list.addAll(bytes.toList())
+
+                        //tempFile.appendBytes(bytes)
+                        Timber.i("Received ${list.size} bytes from ${httpResponse.contentLength()} $url")
+                    }
+
                 }
+
+                //Timber.i("Файл скачан $url")
+
+
+                runBlocking {
+
+                    val r = lruCache.putAsync(url) {
+                        File(it).writeBytes(list.toByteArray())
+                        Timber.i("Файл сохранен в Кеш $url Файл ${URLtoFilePath(url)}")
+                        true
+                    }
+                    r.await()
+                    Timber.i("Файл ${URLtoFilePath(url)}")
+
+                }
+
+
+            } catch (e: Exception) {
+                // Обработка исключения
+                Timber.e(e.message)
+            } finally {
+                // Удаляем временный файл после того, как вы закончите с ним работать
+                //tempFile.delete()
             }
-            Timber.i("A file saved to ${file.path}")
+
+
         }
     }
 }
 
-
+//val source = File("source.txt")
+//val destination = File("destination.txt")
+//source.copyTo(destination)
 

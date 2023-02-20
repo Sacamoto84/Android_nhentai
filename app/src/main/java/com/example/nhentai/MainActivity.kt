@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.nhentai.cache.HTTPCacheFolderPath
+import com.example.nhentai.cache.lruCache
 import com.example.nhentai.screen.info.Info
 import com.example.nhentai.screen.info.vmInfo
 import com.example.nhentai.screen.viewer.ScreenViewer
@@ -22,25 +23,47 @@ import com.jakewharton.picnic.TextAlignment
 import com.jakewharton.picnic.TextBorder.Companion.ROUNDED
 import com.jakewharton.picnic.renderText
 import com.jakewharton.picnic.table
+import com.example.nhentai.disklrucache.DiskLruCache
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import timber.log.Timber.*
 import timber.log.Timber.Forest.plant
-
-//val lruCache = DiskLruCache.open(
-//    directory = cacheDir,
-//    maxSize = 10 * 1024 * 1024, // 10 MB
-//)
+import java.io.File
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalAnimationApi::class)
+
+    @OptIn(ExperimentalAnimationApi::class, DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         plant(DebugTree())
 
         Timber.i("Hello")
+
+
+        val path = applicationContext.getExternalFilesDir("/DiskLruCache1/").toString()
+
+        runBlocking{
+
+            try {
+                lruCache = DiskLruCache.open(
+                    directoryPath = path,
+                    maxSize = 1000 * 1024 * 1024, // 10 MB
+                    creationDispatcher = Dispatchers.IO
+                )
+            } catch (e: Exception) {
+                Timber.i(e.message)
+            }
+
+        }
+
+
 
         println(
             table {
@@ -94,27 +117,18 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             NhentaiTheme {
-                // A surface container using the 'background' color from the theme
-
-                //Greeting("Android")
 
                 val navController = rememberAnimatedNavController()
-
-                //val navController = rememberNavController()
-
-                //ScreenInfo(navController)
 
                 AnimatedNavHost(navController = navController, startDestination = "info") {
 
                     composable("info",
-                        enterTransition = {fadeIn(animationSpec = tween(0)) },
-                        exitTransition = {fadeOut(animationSpec = tween(0)) })
+                        enterTransition = { fadeIn(animationSpec = tween(0)) },
+                        exitTransition = { fadeOut(animationSpec = tween(0)) })
                     {
-
-                        val viewModel  = hiltViewModel<vmInfo>()
+                        val viewModel = hiltViewModel<vmInfo>()
                         println(viewModel)
                         Info(navController = navController, viewModel = viewModel)
-
                     }
 
                     composable("viewer",
@@ -122,11 +136,9 @@ class MainActivity : ComponentActivity() {
                         exitTransition = { fadeOut(animationSpec = tween(0)) }
                     )
                     {
-
-                        val viewModel  = hiltViewModel<vmViewer>()
+                        val viewModel = hiltViewModel<vmViewer>()
                         println(viewModel)
                         ScreenViewer(navController, viewModel)
-
                     }
 
                 }

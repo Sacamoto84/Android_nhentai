@@ -21,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,7 +47,6 @@ import androidx.compose.ui.util.fastForEach
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
 import com.example.nhentai.DN
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -60,8 +60,18 @@ var offset = mutableStateOf(Offset(0f, 0f))
 var zoom1 by mutableStateOf(1f)
 
 
+
 @Composable
 fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
+
+    LaunchedEffect(key1 = true, block =
+    {
+
+        viewModel.calculateAddress()
+
+    })
+
+
 
 
     val scope = rememberCoroutineScope()
@@ -84,7 +94,8 @@ fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
 
     Column(
         modifier = Modifier
-            .fillMaxSize().background(Color(0xFF1F1F1F))
+            .fillMaxSize()
+            .background(Color(0xFF1F1F1F))
     ) {
 
         Box(
@@ -98,12 +109,12 @@ fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
 
             if (DN.thumbContainers[DN.selectedPage - 1].urlOriginal != null) {
 
-                viewModel.calculateAddress()
+
 
                 //Timber.i("scale2 ${scale.value} ${offset.value}")
 
                 SubcomposeAsyncImage(
-                    model = viewModel.address,
+                    model = viewModel.address.value,
                     loading = {
                         CircularProgressIndicator(color = Color.White)
                     },
@@ -196,26 +207,16 @@ fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
             Row( modifier = Modifier
                 .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
 
-                Button(onClick = {
-                    val a = 5
-                    val b = a/0
-b
-                    viewModel.first()
-
-                }) {
+                Button(onClick = { viewModel.first()    }) {
                 }
                 Button(onClick = { viewModel.previous() }) {
                 }
 
-
                 Text(text = viewModel.selectedPage + " / " + DN.num_pages.toString(), color = Color(0xFFC3C3C3))
 
-
                 Button(onClick = { viewModel.next() }) {
-
                 }
                 Button(onClick = { viewModel.last() }) {
-
                 }
             }
 

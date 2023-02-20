@@ -7,14 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.nhentai.DN
 import com.example.nhentai.api.readHtmlFromURL
 import com.example.nhentai.cache.cacheCheck
-import com.example.nhentai.cache.cacheFileCheck
 import com.example.nhentai.cache.cacheFileWrite
-import com.example.nhentai.model.DynamicNHentai
 import com.example.nhentai.parser.stringToDynamicHentai
 import com.example.nhentai.parser.stringToUrlOriginal
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -62,7 +59,7 @@ class vmInfo @Inject constructor(
         Timber.i("...cacheThumbalis")
         viewModelScope.launch(Dispatchers.IO) {
             //Если нет файла то создадим для него кеш
-            if (!cacheFileCheck(url)) {
+            if (!cacheCheck(url)) {
                 cacheFileWrite(url)
             }
         }
@@ -82,7 +79,7 @@ class vmInfo @Inject constructor(
             //Timber.i("Ok3")
             ReedDataComplete.value = true
 
-            launchIndexirovanieOriginal()
+            //launchIndexirovanieOriginal()
         }
     }
 
@@ -109,7 +106,7 @@ class vmInfo @Inject constructor(
             Timber.i("OriginalURL = $OriginalURL")
 
             //Если нет файла то создадим для него кеш
-            if (OriginalURL?.let { cacheFileCheck(it) } == false) {
+            if (OriginalURL?.let { cacheCheck(it) } == false) {
                 cacheFileWrite(OriginalURL)
             }
 

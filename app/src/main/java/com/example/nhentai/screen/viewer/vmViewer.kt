@@ -7,14 +7,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nhentai.DN
 import com.example.nhentai.api.readHtmlFromURL
-import com.example.nhentai.cache.URLtoFilePathFile
-import com.example.nhentai.cache.cacheFileCheck
+import com.example.nhentai.cache.URLtoFilePath
+import com.example.nhentai.cache.cacheCheck
 import com.example.nhentai.cache.cacheFileWrite
 import com.example.nhentai.parser.stringToUrlOriginal
 import com.jakewharton.picnic.table
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -24,7 +26,7 @@ class vmViewer @Inject constructor(
 ) : ViewModel() {
 
     init {
-         Timber.i(
+        Timber.i(
             table {
                 cellStyle {
                     border = true
@@ -34,7 +36,7 @@ class vmViewer @Inject constructor(
         )
     }
 
-    var address by mutableStateOf("") //Адресс показываемой картинки
+    var address = mutableStateOf("") //Адресс показываемой картинки
 
     var selectedPage by mutableStateOf("") //Номер выбранной страницы
 
@@ -45,7 +47,7 @@ class vmViewer @Inject constructor(
                 cellStyle {
                     border = true
                 }
-                row("................onCleared")
+                row("vmViewer...onCleared")
             }.toString()
         )
     }
@@ -89,13 +91,59 @@ class vmViewer @Inject constructor(
 
 
     fun calculateAddress() {
-        Timber.i("calculateAddress()")
-        val url = DN.thumbContainers[DN.selectedPage - 1].urlOriginal.toString()
-        address = if (!cacheFileCheck(url)) {
-            url
-        } else {
-            URLtoFilePathFile(url)
+        Timber.i("......calculateAddress()")
+
+        var url = DN.thumbContainers[DN.selectedPage - 1].urlOriginal.toString()
+
+        Timber.i("1 $url")
+
+        var originalURL : String
+
+        if (url == "null") {
+            Timber.i("Нет urlOriginal")
+
+
+
+            runBlocking {
+                var s =
+                    "https://nhentai.to${DN.thumbContainers[DN.selectedPage - 1].href.toString()}"
+
+                if (s.last() == '/')
+                    s = s.dropLast(1)
+
+                val html = readHtmlFromURL(s)
+                originalURL = stringToUrlOriginal(html)!!
+
+                url = originalURL
+
+                DN.thumbContainers[DN.selectedPage - 1].urlOriginal = originalURL
+                Timber.i("OriginalURL = $originalURL")
+
+            }
+
+            if (DN.thumbContainers[DN.selectedPage - 1].urlOriginal.toString() == "null")
+                return
         }
+
+        Timber.i("2")
+
+
+        GlobalScope.launch(Dispatchers.Main) {
+
+
+
+            address.value = if (!cacheCheck(url)) {
+                cacheFileWrite(url)
+                url
+            } else {
+                val s = URLtoFilePath(url)
+                Timber.i("calculateAddress $s")
+                s
+            }
+            Timber.i("address ${address.value}")
+        }
+
+
         selectedPage = DN.selectedPage.toString()
     }
 //////////////////////////////////////////////////////
@@ -120,10 +168,10 @@ class vmViewer @Inject constructor(
 
             Timber.i("OriginalURL = $OriginalURL")
 
-            //Если нет файла то создадим для него кеш
-            if (OriginalURL?.let { cacheFileCheck(it) } == false) {
-                cacheFileWrite(OriginalURL)
-            }
+//            //Если нет файла то создадим для него кеш
+//            if (OriginalURL?.let { cacheCheck(it) } == false) {
+//                cacheFileWrite(OriginalURL)
+//            }
 
         }
 
