@@ -23,17 +23,19 @@ import com.jakewharton.picnic.TextAlignment
 import com.jakewharton.picnic.TextBorder.Companion.ROUNDED
 import com.jakewharton.picnic.renderText
 import com.jakewharton.picnic.table
-import com.example.nhentai.disklrucache.DiskLruCache
+import com.tomclaw.cache.DiskLruCache
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import timber.log.Timber
-import timber.log.Timber.*
+import timber.log.Timber.DebugTree
 import timber.log.Timber.Forest.plant
 import java.io.File
+
+
+lateinit var cacheDir1 : File
+lateinit var cacheDirTemp : File
+
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -47,21 +49,18 @@ class MainActivity : ComponentActivity() {
         Timber.i("Hello")
 
 
-        val path = applicationContext.getExternalFilesDir("/DiskLruCache1/").toString()
+        //path = applicationContext.getExternalFilesDir("/DiskLruCache1/").toString()
 
-        runBlocking{
+        cacheDir1 = applicationContext.getExternalFilesDir("/DiskLruCache2/")!!
+        cacheDirTemp = applicationContext.getExternalFilesDir("/DiskLruCache2/Temp")!!
 
-            try {
-                lruCache = DiskLruCache.open(
-                    directoryPath = path,
-                    maxSize = 1000 * 1024 * 1024, // 10 MB
-                    creationDispatcher = Dispatchers.IO
-                )
-            } catch (e: Exception) {
-                Timber.i(e.message)
-            }
+        //val  journalFile = applicationContext.getExternalFilesDir("/DiskLruCache2/journalFile")
+        //val  journalBkpFile= applicationContext.getExternalFilesDir("/DiskLruCache2/Bkp")
 
-        }
+        lruCache = DiskLruCache.create(cacheDir1, 1024*1024*1024);
+        lruCache
+
+
 
 
 

@@ -1,10 +1,11 @@
 package com.example.nhentai.cache
 
+import com.example.nhentai.cacheDirTemp
 import com.example.nhentai.contex
-import com.example.nhentai.disklrucache.DiskLruCache
+import com.tomclaw.cache.DiskLruCache
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.prepareGet
 import io.ktor.http.contentLength
@@ -15,13 +16,18 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.File
+
 
 lateinit var HTTPCacheFolderPath: String //Корневая папка где лежит кеш
 
 lateinit var lruCache: DiskLruCache
+
+
+var lruCacheDownloadSet =
+    mutableSetOf<String>() //Список текущих работ по скачиванию, чтобы небыло две работы по скачиванию в кеш
+
 
 //fun URLtoFilePath(url: String): String {
 //    val str = url.substringAfter("://")
@@ -34,7 +40,9 @@ lateinit var lruCache: DiskLruCache
 
 // Версия DiskLruCache
 suspend fun URLtoFilePath(url: String): String {
-    return lruCache.getIfAvailable(url).toString()
+    val file: File? = lruCache.get(url)
+    val path = file?.path
+    return path ?: "null"
 }
 
 
@@ -46,20 +54,15 @@ fun filePath(str: String): String {
 //Проверить адресс есть ли в кеше
 //Возвращает bool
 suspend fun cacheCheck(url: String): Boolean {
+
+    val file: File? = lruCache.get(url)
     var result: Boolean = false
-    var result2: Boolean = false
 
-    try {
-        result = lruCache.getIfAvailable(url) != null
-        result2 = if (result) {
-            isFileExists(File(URLtoFilePath(url)))
-        } else false
-    } catch (e: Exception) {
-        Timber.i(e.message)
-    }
+    if (file != null)
+        result = true
 
-    Timber.i("..cacheCheck result:$result result2:$result2 url:$url")
-    return result && result2
+    Timber.i("..cacheCheck result:$result url:$url")
+    return result
 }
 
 fun isFileExists(file: File): Boolean {
@@ -67,62 +70,45 @@ fun isFileExists(file: File): Boolean {
 }
 
 //Запись в кеш HTML страницу
+@OptIn(DelicateCoroutinesApi::class)
 suspend fun cacheHTMLWrite(url: String, html: String) {
-    Timber.i("..cacheHTMLWrite $url")
-    try {
-        lruCache.put(url) {
-            //Timber.i("cacheHTMLWrite 11111111 it $it")
-            File(it).writeText(html)
-            true
+    Timber.i("...cacheHTMLWrite $url")
+    GlobalScope.launch(Dispatchers.IO) {
+        try {
+            val file = File.createTempFile("random", ".dat", cacheDirTemp)
+            file.writeText(html)
+            lruCache.put(url, file)
+            Timber.i("HTML сохранен в Кеш $url Файл ${URLtoFilePath(url)}")
+        } catch (e: Exception) {
+            Timber.e(e.message)
         }
-    } catch (e: Exception) {
-        Timber.e(e.message)
     }
 }
 
 //Чтение из кеша HTML страницы
 suspend fun cacheHTMLRead(url: String): String {
     Timber.i("..cacheHTMLRead")
-    val file = lruCache.getIfAvailable(url)?.let { File(it) }
+    val file: File? = lruCache.get(url)
     return file?.readText() ?: ""
 }
-
-
-////////////////////////////////////////////////////
-// Файлы не Html
-////////////////////////////////////////////////////
-
-//fun URLtoFilePathFile(url: String): String {
-//    val str = url.substringAfter("://")
-//    if (str.last() == '/')
-//        str.dropLast(1)
-//
-//    return contex.getExternalFilesDir("/Cache/${str.substringBeforeLast('/')}")
-//        .toString() + "/" + str.substringAfterLast('/')
-//}
-
-////Проверить адресс есть ли в кеше
-////Возвращает bool
-//fun cacheFileCheck(url: String): Boolean {
-//    Timber.i("..cacheCheck $url")
-//    val result = isFileExists(File(URLtoFilePathFile(url)))
-//    Timber.i("..cacheCheck result: $result")
-//    return result
-//}
 
 //Запись в кеш Файл
 @OptIn(DelicateCoroutinesApi::class)
 fun cacheFileWrite(url: String) {
     Timber.i("..cacheFileWrite $url")
 
-    // Создаем временный файл
-    //val tempFile = File.createTempFile("TempFile", ".tmp")
-
-
-    val list: MutableList<Byte> = mutableListOf()
+    val request = lruCacheDownloadSet.contains(url)
+    if (request == true) {
+        //Значит задача есть в списке задачь
+        Timber.i("Задача есть в списке на скачивание $url")
+        return
+    }
+    lruCacheDownloadSet.add(url) //Добавили в список задач
 
     GlobalScope.launch(Dispatchers.IO) {
-        val client = HttpClient(CIO)
+
+        val list: MutableList<Byte> = mutableListOf()
+        val client = HttpClient(OkHttp)
         {
             install(HttpTimeout)
             {
@@ -131,48 +117,29 @@ fun cacheFileWrite(url: String) {
         }
         client.prepareGet(url).execute { httpResponse ->
             val channel: ByteReadChannel = httpResponse.body()
-
             try {
-
                 while (!channel.isClosedForRead) {
                     val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-
                     while (!packet.isEmpty) {
                         val bytes = packet.readBytes()
-
                         list.addAll(bytes.toList())
-
-                        //tempFile.appendBytes(bytes)
-                        Timber.i("Received ${list.size} bytes from ${httpResponse.contentLength()} $url")
+                        Timber.i("Received ${list.size} из ${httpResponse.contentLength()} $url")
                     }
 
                 }
-
-                //Timber.i("Файл скачан $url")
-
-
-                runBlocking {
-
-                    val r = lruCache.putAsync(url) {
-                        File(it).writeBytes(list.toByteArray())
-                        Timber.i("Файл сохранен в Кеш $url Файл ${URLtoFilePath(url)}")
-                        true
-                    }
-                    r.await()
-                    Timber.i("Файл ${URLtoFilePath(url)}")
-
+                Timber.i("Файл скачан $url")
+                run {
+                    val file = File.createTempFile("random", ".dat", cacheDirTemp)
+                    file.writeBytes(list.toByteArray())
+                    lruCache.put(url, file)
+                    Timber.i("Файл сохранен в Кеш $url Файл ${URLtoFilePath(url)} Temp:${file.path}")
+                    Timber.i("usedSpace:${lruCache.usedSpace} freeSpace:${lruCache.freeSpace} cacheSize:${lruCache.cacheSize}")
+                    lruCacheDownloadSet.remove(url) //Удалили из списка текущий url
+                    true
                 }
-
-
             } catch (e: Exception) {
-                // Обработка исключения
                 Timber.e(e.message)
-            } finally {
-                // Удаляем временный файл после того, как вы закончите с ним работать
-                //tempFile.delete()
             }
-
-
         }
     }
 }

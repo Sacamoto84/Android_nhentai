@@ -3,6 +3,7 @@ package com.example.nhentai.screen.viewer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nhentai.DN
@@ -15,6 +16,9 @@ import com.jakewharton.picnic.table
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
@@ -25,6 +29,15 @@ class vmViewer @Inject constructor(
 
 ) : ViewModel() {
 
+
+    //
+    private val _selectPageState = MutableStateFlow<Int>(DN.selectedPage)
+    val selectPageState: StateFlow<Int>
+        // = _selectPageState
+        get() = _selectPageState
+    //
+
+
     init {
         Timber.i(
             table {
@@ -34,11 +47,24 @@ class vmViewer @Inject constructor(
                 row("Создание вьюмодели vmViewer")
             }.toString()
         )
+
+
+        viewModelScope.launch(Dispatchers.IO) {
+            _selectPageState.collect {
+                Timber.i("collect = $it")
+
+
+
+
+            }
+        }
+
+
     }
 
     var address = mutableStateOf("") //Адресс показываемой картинки
-
     var selectedPage by mutableStateOf("") //Номер выбранной страницы
+
 
     override fun onCleared() {
         super.onCleared()
@@ -62,6 +88,10 @@ class vmViewer @Inject constructor(
         if (DN.selectedPage < DN.num_pages)
             DN.selectedPage++
 
+        _selectPageState.update {
+            DN.selectedPage
+        }
+
         calculateAddress()
     }
 
@@ -72,6 +102,10 @@ class vmViewer @Inject constructor(
         if (DN.selectedPage > 1)
             DN.selectedPage--
 
+        _selectPageState.update {
+            DN.selectedPage
+        }
+
         calculateAddress()
     }
 
@@ -79,6 +113,11 @@ class vmViewer @Inject constructor(
     fun first() {
         Timber.i("first()")
         DN.selectedPage = 1
+
+        _selectPageState.update {
+            DN.selectedPage
+        }
+
         calculateAddress()
     }
 
@@ -86,6 +125,11 @@ class vmViewer @Inject constructor(
     fun last() {
         Timber.i("last()")
         DN.selectedPage = DN.num_pages.toInt()
+
+        _selectPageState.update {
+            DN.selectedPage
+        }
+
         calculateAddress()
     }
 
@@ -97,7 +141,7 @@ class vmViewer @Inject constructor(
 
         Timber.i("1 $url")
 
-        var originalURL : String
+        var originalURL: String
 
         if (url == "null") {
             Timber.i("Нет urlOriginal")
@@ -129,7 +173,6 @@ class vmViewer @Inject constructor(
 
 
         GlobalScope.launch(Dispatchers.Main) {
-
 
 
             address.value = if (!cacheCheck(url)) {
