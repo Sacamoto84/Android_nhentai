@@ -125,9 +125,9 @@ class MainActivity : ComponentActivity() {
                         enterTransition = { fadeIn(animationSpec = tween(0)) },
                         exitTransition = { fadeOut(animationSpec = tween(0)) })
                     {
-                        val viewModel = hiltViewModel<vmInfo>()
-                        println(viewModel)
-                        Info(navController = navController, viewModel = viewModel)
+                        //val viewModel = hiltViewModel<vmInfo>()
+                        //println(viewModel)
+                        Info(navController = navController)
                     }
 
                     composable("viewer",

@@ -32,9 +32,6 @@ class vmInfo @Inject constructor(
        Timber.i("................onCleared")
     }
 
-
-
-
     var ReedDataComplete = mutableStateOf(false) //Признак того что данные прочитаны полностью
 
     var IndexirovanieComplete = mutableStateOf(false)
@@ -54,7 +51,6 @@ class vmInfo @Inject constructor(
 
     }
 
-
     fun cacheThumbalis(url: String) {
         Timber.i("...cacheThumbalis")
         viewModelScope.launch(Dispatchers.IO) {
@@ -73,12 +69,9 @@ class vmInfo @Inject constructor(
             //Timber.i("Ok1")
             val html = readHtmlFromURL("https://nhentai.to/g/$id")
             //Timber.i("Ok2")
-
             DN = stringToDynamicHentai(html)
-
             //Timber.i("Ok3")
             ReedDataComplete.value = true
-
             //launchIndexirovanieOriginal()
         }
     }

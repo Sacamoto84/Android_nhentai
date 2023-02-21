@@ -39,7 +39,7 @@ var lruCacheDownloadSet =
 
 
 // Версия DiskLruCache
-suspend fun URLtoFilePath(url: String): String {
+fun URLtoFilePath(url: String): String {
     val file: File? = lruCache.get(url)
     val path = file?.path
     return path ?: "null"
@@ -53,7 +53,7 @@ fun filePath(str: String): String {
 
 //Проверить адресс есть ли в кеше
 //Возвращает bool
-suspend fun cacheCheck(url: String): Boolean {
+fun cacheCheck(url: String): Boolean {
 
     val file: File? = lruCache.get(url)
     var result: Boolean = false
@@ -123,7 +123,7 @@ fun cacheFileWrite(url: String) {
                     while (!packet.isEmpty) {
                         val bytes = packet.readBytes()
                         list.addAll(bytes.toList())
-                        Timber.i("Received ${list.size} из ${httpResponse.contentLength()} $url")
+                        //Timber.i("Received ${list.size} из ${httpResponse.contentLength()} $url")
                     }
 
                 }

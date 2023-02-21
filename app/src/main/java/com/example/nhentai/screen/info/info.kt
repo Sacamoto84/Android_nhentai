@@ -25,6 +25,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.DisposableEffectResult
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,11 +40,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.MeasurePolicy
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.nhentai.DN
 import com.example.nhentai.cache.URLtoFilePath
 import com.example.nhentai.cache.cacheCheck
+import com.example.nhentai.cache.cacheFileWrite
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -149,37 +153,42 @@ var iid by mutableStateOf(403148)
 @Composable
 fun Info(
     navController: NavHostController,
-    viewModel: vmInfo,
+    //viewModel: vmInfo,
     id: Int = 403147,
-
 ) {
 
+    val viewModel: vmInfo = viewModel()
+    println(viewModel)
+
     Column() {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .weight(1f))
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(1f)
+        )
         {
-            ScreenInfo(navController, viewModel = viewModel, id = {iid})
+            ScreenInfo(navController, viewModel = viewModel, id = { iid })
         }
-        Box(modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp)
-            .background(Color.Red))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .background(Color.Red)
+        )
         {
 
             Row() {
 
-                Button(onClick = { iid-=1 }) {
-                    Text(text = "-" )
+                Button(onClick = { iid -= 1 }) {
+                    Text(text = "-")
                 }
 
-                Text(text = "$iid" )
+                Text(text = "$iid")
 
-                Button(onClick = { iid+=1 }) {
-                    Text(text = "+" )
+                Button(onClick = { iid += 1 }) {
+                    Text(text = "+")
                 }
             }
-
 
 
         }
@@ -194,35 +203,25 @@ fun Info(
 fun ScreenInfo(
     navController: NavHostController,
     viewModel: vmInfo,
-    id: ()->Int,
+    id: () -> Int,
 ) {
 
-Timber.i("ScreenInfo id ${id()}")
+    val scrollState = rememberScrollState()
 
+    Timber.i("ScreenInfo id ${id()}")
 
-    LaunchedEffect(key1 = id()) {
+    LaunchedEffect(key1 = id() ) {
         //viewModel.startLogging()
-        Timber.i("ScreenInfo DisposableEffect")
+        Timber.i("ScreenInfo LaunchedEffect")
         viewModel.launchReadFromId(id())
-
     }
 
     if (viewModel.ReedDataComplete.value) {
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF1F1F1F))
-        )
+        Box( modifier = Modifier.fillMaxSize().background(Color(0xFF1F1F1F)) )
         {
 
-            val scrollState = rememberScrollState(0)
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(state = scrollState, flingBehavior = flingBehavior())
-            )
+            Column( modifier = Modifier.fillMaxSize().verticalScroll(state = scrollState, flingBehavior = flingBehavior()) )
             {
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -240,7 +239,7 @@ Timber.i("ScreenInfo id ${id()}")
                 //Text(text = DN.h2.toString(), color = Color(0xFFD9D9D9))
 
                 Button(onClick = { viewModel.launchIndexirovanieOriginal() }) {
-                    Text(text = "Индексирование" )
+                    Text(text = "Индексирование")
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -260,23 +259,28 @@ Timber.i("ScreenInfo id ${id()}")
 
                 )
                 {
+
                     DN.thumbContainers.forEachIndexed { index, i ->
 
                         //Поместить в кеш эскиз
-                        viewModel.cacheThumbalis(i.url.toString())
+                        //viewModel.cacheThumbalis(i.url.toString())
 
+
+                        //val address = i.url.toString()
                         val address =
-                        runBlocking {
 
+
+
+//                        runBlocking {
+//
                             if (!cacheCheck(i.url.toString())) {
+                                cacheFileWrite(i.url.toString())
                                 i.url.toString()
                             } else {
                                 URLtoFilePath(i.url.toString())
                             }
-
-                        }
-
-
+//
+//                        }
 
 
                         AsyncImage(
@@ -284,14 +288,17 @@ Timber.i("ScreenInfo id ${id()}")
                                 .fillMaxWidth(0.3f)
                                 .padding(top = 8.dp)
                                 .clickable {
+
                                     //Нажатие на иконку
-                                    viewModel.launchReadOriginalImageFromHref(
-                                        i.href.toString(),
-                                        index
-                                    )
+//                                    viewModel.launchReadOriginalImageFromHref(
+//                                        i.href.toString(),
+//                                        index
+//                                    )
+
                                     DN.selectedPage = index + 1
 
-                                    navController.navigate("viewer",
+                                    navController.navigate(
+                                        "viewer",
 
 //                                        builder = {
 //
@@ -300,7 +307,6 @@ Timber.i("ScreenInfo id ${id()}")
 //                                            }
 //
 //                                        }
-
 
 
                                     ) //По нажатию открываем viewer
@@ -325,7 +331,8 @@ Timber.i("ScreenInfo id ${id()}")
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF1F1F1F)))
+                .background(Color(0xFF1F1F1F))
+        )
 
         {
 

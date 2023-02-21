@@ -13,27 +13,13 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
     println("stringToDynamicHentai")
 
     val doc: Document = Jsoup.parse(html)
-
-    println("stringToDynamicHentai 0")
-
-
-
     val bigContainer = doc.getElementById("bigcontainer")
-
-    println("stringToDynamicHentai 00")
-
 
     val coverURL = bigContainer?.getElementById("cover")?.getElementsByTag("a")?.get(0)
         ?.getElementsByTag("img")?.get(0)?.attributes()?.get("src")
 
-    println("stringToDynamicHentai 000")
-
     val info = bigContainer?.getElementById("info")
-
-    println("stringToDynamicHentai 0000")
-
     val h1 = info?.getElementsByTag("h1")?.get(0)?.childNode(0).toString()
-    println("stringToDynamicHentai 0100")
 
     try {
         val h2 = info?.getElementsByTag("h2")?.get(0)?.childNode(0).toString()
@@ -43,19 +29,12 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
         Timber.e(e.message)
     }
 
-
-    println("stringToDynamicHentai 0010")
     val id = info?.getElementsByTag("h3")?.get(0)?.childNode(1).toString().toInt()
-
-    println("stringToDynamicHentai 00000")
 
     val tags = info?.getElementById("tags")?.getElementsByClass("tag-container field-name")
     val tags1 = info?.getElementById("tags")?.getElementsByClass("tag-container field-name ")
 
-    println("stringToDynamicHentai 1")
-
     val tagContainerAll: MutableList<TagContainer> = mutableListOf()
-
 
     if (tags1 != null) {
 
@@ -79,8 +58,6 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
         }
     }
 
-    println("stringToDynamicHentai 2")
-
     var pages = 0
     var uploaded = "."
 
@@ -100,8 +77,6 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
 
     val thumbContainers: MutableList<ThumbContainer> = mutableListOf()//Список иконок
 
-    println("stringToDynamicHentai 3")
-
     if (thumbnail != null) {
         for (i in thumbnail) {
             val a = i.childNode(1)
@@ -110,8 +85,6 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
             thumbContainers.add(ThumbContainer(href, src))
         }
     }
-
-    println("stringToDynamicHentai 4")
 
     val item: DynamicNHentai = DynamicNHentai(
         id = id,

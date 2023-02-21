@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,18 +61,13 @@ var offset = mutableStateOf(Offset(0f, 0f))
 var zoom1 by mutableStateOf(1f)
 
 
-
 @Composable
 fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
 
     LaunchedEffect(key1 = true, block =
     {
-
-        viewModel.calculateAddress()
-
+        viewModel.calculateAddressCoroutine()
     })
-
-
 
 
     val scope = rememberCoroutineScope()
@@ -92,6 +88,9 @@ fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
 
     val decimalFormat = remember { DecimalFormat("0.0") }
 
+    val address = viewModel.selectAddress.collectAsState()
+    val page = viewModel.selectPageState.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -107,14 +106,13 @@ fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
         )
         {
 
-            if (DN.thumbContainers[DN.selectedPage - 1].urlOriginal != null) {
 
 
 
                 //Timber.i("scale2 ${scale.value} ${offset.value}")
 
                 SubcomposeAsyncImage(
-                    model = viewModel.address.value,
+                    model = address.value,
                     loading = {
                         CircularProgressIndicator(color = Color.White)
                     },
@@ -132,7 +130,6 @@ fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
                             zoomState.setLayoutSize(size.toSize())
                         }
                         .pointerInput(Unit) {
-
                             detectTransformGestures(
                                 onGesture = { centroid, pan, zoom, _, timeMillis ->
                                     scope.launch {
@@ -186,13 +183,7 @@ fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
                 )
 
 
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Magenta)
-                )
-            }
+
 
         }
 
@@ -204,15 +195,20 @@ fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
         )
         {
 
-            Row( modifier = Modifier
-                .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
 
-                Button(onClick = { viewModel.first()    }) {
+                Button(onClick = { viewModel.first() }) {
                 }
                 Button(onClick = { viewModel.previous() }) {
                 }
 
-                Text(text = viewModel.selectedPage + " / " + DN.num_pages.toString(), color = Color(0xFFC3C3C3))
+                Text(
+                    text = page.value.toString() + " / " + DN.num_pages.toString(),
+                    color = Color(0xFFC3C3C3)
+                )
 
                 Button(onClick = { viewModel.next() }) {
                 }
