@@ -5,6 +5,7 @@ import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.DecayAnimationSpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.animation.rememberSplineBasedDecay
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.FlingBehavior
@@ -43,6 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 import com.example.nhentai.DN
 import com.example.nhentai.cache.URLtoFilePath
 import com.example.nhentai.cache.cacheCheck
@@ -153,11 +156,12 @@ var iid by mutableStateOf(403148)
 @Composable
 fun Info(
     navController: NavHostController,
-    //viewModel: vmInfo,
+    viewModel: vmInfo,
     id: Int = 403147,
 ) {
 
-    val viewModel: vmInfo = viewModel()
+    //val viewModel: vmInfo = viewModel()
+
     println(viewModel)
 
     Column() {
@@ -188,14 +192,17 @@ fun Info(
                 Button(onClick = { iid += 1 }) {
                     Text(text = "+")
                 }
-            }
 
+                Button(onClick = { viewModel.deleteGalleryById() }) {
+                    Text(text = "Удалить")
+                }
+
+            }
 
         }
     }
 
 }
-
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(DelicateCoroutinesApi::class, ExperimentalLayoutApi::class)
@@ -226,12 +233,14 @@ fun ScreenInfo(
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+
                     AsyncImage(
                         modifier = Modifier
                             .fillMaxWidth(0.7f),
                         model = DN.urlCover,
                         contentDescription = null
                     )
+
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = DN.h1.toString(), color = Color(0xFFD9D9D9))
@@ -268,19 +277,20 @@ fun ScreenInfo(
 
                         //val address = i.url.toString()
                         val address =
-
-
-
-//                        runBlocking {
-//
                             if (!cacheCheck(i.url.toString())) {
                                 cacheFileWrite(i.url.toString())
                                 i.url.toString()
                             } else {
                                 URLtoFilePath(i.url.toString())
                             }
-//
-//                        }
+
+//                        val painter = rememberAsyncImagePainter(
+//                            model = address
+//                        )
+
+
+
+
 
 
                         AsyncImage(

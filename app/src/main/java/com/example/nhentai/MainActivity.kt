@@ -8,8 +8,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.room.Room
 import com.example.nhentai.cache.HTTPCacheFolderPath
 import com.example.nhentai.cache.lruCache
+import com.example.nhentai.room.AppDatabase
+import com.example.nhentai.room.User
 import com.example.nhentai.screen.info.Info
 import com.example.nhentai.screen.info.vmInfo
 import com.example.nhentai.screen.viewer.ScreenViewer
@@ -26,16 +29,15 @@ import com.jakewharton.picnic.table
 import com.tomclaw.cache.DiskLruCache
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 import timber.log.Timber.Forest.plant
 import java.io.File
 
-
 lateinit var cacheDir1 : File
 lateinit var cacheDirTemp : File
-
-
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -47,7 +49,6 @@ class MainActivity : ComponentActivity() {
         plant(DebugTree())
 
         Timber.i("Hello")
-
 
         //path = applicationContext.getExternalFilesDir("/DiskLruCache1/").toString()
 
@@ -115,6 +116,10 @@ class MainActivity : ComponentActivity() {
         contex = applicationContext
 
         setContent {
+
+
+
+
             NhentaiTheme {
 
                 val navController = rememberAnimatedNavController()
@@ -125,9 +130,9 @@ class MainActivity : ComponentActivity() {
                         enterTransition = { fadeIn(animationSpec = tween(0)) },
                         exitTransition = { fadeOut(animationSpec = tween(0)) })
                     {
-                        //val viewModel = hiltViewModel<vmInfo>()
-                        //println(viewModel)
-                        Info(navController = navController)
+                        val viewModel = hiltViewModel<vmInfo>()
+                        println(viewModel)
+                        Info(navController = navController, viewModel)
                     }
 
                     composable("viewer",
@@ -141,43 +146,6 @@ class MainActivity : ComponentActivity() {
                     }
 
                 }
-
-
-//                    AnimatedNavHost(
-//                        navController = navController,
-//                        startDestination = "info",
-//                        modifier = Modifier.background(Color.Black)
-//                    ) {
-////
-//                        composable("info",
-//                            enterTransition = { fadeIn(animationSpec = tween(0)) },
-//                            exitTransition = { fadeOut(animationSpec = tween(0)) })
-//                        {
-//                            ScreenInfo()
-//                        }
-////
-//////                        composable(Screen.Viewer.route+"?id={id}&currentPage={currentPage}&countPage={countPage}",
-//////                            enterTransition = { fadeIn(animationSpec = tween(0)) },
-//////                            exitTransition = { fadeOut(animationSpec = tween(0)) })
-//////                        {
-//////
-//////                            val id = it.arguments?.getString("id")?.toInt()
-//////                            val currentPage = it.arguments?.getString("currentPage")?.toInt()
-//////                            val countPage = it.arguments?.getString("countPage")?.toInt()
-//////
-//////                            if (id != null) {
-//////                                if (currentPage != null) {
-//////                                    if (countPage != null) {
-//////                                        ScreenViewer(navController, id, currentPage, countPage)
-//////                                    }
-//////                                }
-//////                            }
-//////                        }
-////
-////
-////
-//                   }
-
 
             }
         }

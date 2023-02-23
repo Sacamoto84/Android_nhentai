@@ -112,12 +112,17 @@ fun cacheFileWrite(url: String) {
         {
             install(HttpTimeout)
             {
-                requestTimeoutMillis = 60000
+                requestTimeoutMillis = 260000
+                connectTimeoutMillis = 260000
+                socketTimeoutMillis = 260000
             }
         }
-        client.prepareGet(url).execute { httpResponse ->
-            val channel: ByteReadChannel = httpResponse.body()
-            try {
+
+        try {
+
+            client.prepareGet(url).execute { httpResponse ->
+                val channel: ByteReadChannel = httpResponse.body()
+
                 while (!channel.isClosedForRead) {
                     val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
                     while (!packet.isEmpty) {
@@ -137,10 +142,14 @@ fun cacheFileWrite(url: String) {
                     lruCacheDownloadSet.remove(url) //Удалили из списка текущий url
                     true
                 }
-            } catch (e: Exception) {
-                Timber.e(e.message)
+
             }
+
+        } catch (e: Exception) {
+            Timber.e(e.message)
         }
+
+
     }
 }
 
