@@ -1,11 +1,8 @@
 package com.example.nhentai.screen.viewer
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.nhentai.DN
+import com.example.nhentai.DNselectedPage
 import com.example.nhentai.api.readHtmlFromURL
 import com.example.nhentai.cache.URLtoFilePath
 import com.example.nhentai.cache.cacheCheck
@@ -14,13 +11,10 @@ import com.example.nhentai.parser.stringToUrlOriginal
 import com.jakewharton.picnic.table
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -30,7 +24,7 @@ class vmViewer @Inject constructor(
 ) : ViewModel() {
 
     //
-    private val _selectPageState = MutableStateFlow<Int>(DN.selectedPage)
+    private val _selectPageState = MutableStateFlow<Int>(DNselectedPage)
     val selectPageState = _selectPageState.asStateFlow()
     //
     private val _selectAddress = MutableStateFlow<String>("")
@@ -59,9 +53,6 @@ class vmViewer @Inject constructor(
 
     }
 
-
-
-
     override fun onCleared() {
         super.onCleared()
         Timber.i(
@@ -81,11 +72,11 @@ class vmViewer @Inject constructor(
     fun next() {
         Timber.i("next()")
 
-        if (DN.selectedPage < DN.num_pages)
-            DN.selectedPage++
+//        if (DNselectedPage < DNGallery.value?.num_pages!!)
+//            DNselectedPage++
 
         _selectPageState.update {
-            DN.selectedPage
+            DNselectedPage
         }
 
         //calculateAddress()
@@ -95,11 +86,11 @@ class vmViewer @Inject constructor(
     fun previous() {
         Timber.i("previous()")
 
-        if (DN.selectedPage > 1)
-            DN.selectedPage--
+        if (DNselectedPage > 1)
+            DNselectedPage--
 
         _selectPageState.update {
-            DN.selectedPage
+            DNselectedPage
         }
 
         //calculateAddress()
@@ -108,10 +99,10 @@ class vmViewer @Inject constructor(
     //Создать адресс первой картинки
     fun first() {
         Timber.i("first()")
-        DN.selectedPage = 1
+        DNselectedPage = 1
 
         _selectPageState.update {
-            DN.selectedPage
+            DNselectedPage
         }
 
         //calculateAddress()
@@ -119,47 +110,56 @@ class vmViewer @Inject constructor(
 
     fun last() {
         Timber.i("last()")
-        DN.selectedPage = DN.num_pages.toInt()
+
+//        DNselectedPage = DNGallery.value?.num_pages!!
 
         _selectPageState.update {
-            DN.selectedPage
+            DNselectedPage
         }
 
         //calculateAddress()
     }
 
     fun calculateAddressCoroutine() {
-        viewModelScope.launch(Dispatchers.IO) {
 
-            var url = DN.thumbContainers[DN.selectedPage - 1].urlOriginal.toString()
 
-            Timber.i("......calculateAddressCoroutine() urlOriginal $url")
 
-            if (url == "null") {
-                Timber.i("Нет urlOriginal")
-                var s =
-                    "https://nhentai.to${DN.thumbContainers[DN.selectedPage - 1].href.toString()}"
-                if (s.last() == '/') s = s.dropLast(1)
-                val html = readHtmlFromURL(s)
-                val originalURL = stringToUrlOriginal(html)!!
-                url = originalURL
-                DN.thumbContainers[DN.selectedPage - 1].urlOriginal = originalURL
-                Timber.i("OriginalURL = $originalURL")
-                calculateAddressCoroutine()
-            } else {
 
-                _selectAddress.value = if (!cacheCheck(url)) {
-                    cacheFileWrite(url)
-                    url
-                } else {
-                    val s = URLtoFilePath(url)
-                    Timber.i("calculateAddress $s")
-                    s
-                }
-                Timber.i("Image address ${_selectAddress.value}")
-            }
+//        viewModelScope.launch(Dispatchers.IO) {
+//
+//            var url = DNthumbContainer.value?.get(DNselectedPage - 1)?.urloriginal.toString()
+//
+//            Timber.i("......calculateAddressCoroutine() urlOriginal $url")
+//
+//            if (url == "null") {
+//                Timber.i("Нет urlOriginal")
+//                var s =
+//                    "https://nhentai.to${DNthumbContainer.value?.get(DNselectedPage - 1)?.href.toString()}"
+//                if (s.last() == '/') s = s.dropLast(1)
+//                val html = readHtmlFromURL(s)
+//                val originalURL = stringToUrlOriginal(html)!!
+//                url = originalURL
+//                DNthumbContainer.value?.get(DNselectedPage - 1)?.urloriginal = originalURL
+//                Timber.i("OriginalURL = $originalURL")
+//                calculateAddressCoroutine()
+//            } else {
+//
+//                _selectAddress.value = if (!cacheCheck(url)) {
+//                    cacheFileWrite(url)
+//                    url
+//                } else {
+//                    val s = URLtoFilePath(url)
+//                    Timber.i("calculateAddress $s")
+//                    s
+//                }
+//                Timber.i("Image address ${_selectAddress.value}")
+//            }
+//
+//        }
 
-        }
+
+
+
 
     }
 

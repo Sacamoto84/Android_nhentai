@@ -14,49 +14,43 @@ data class User(
 )
 
 
-
-@Entity( tableName = "gallery") //Имя таблицы
+@Entity(tableName = "gallery") //Имя таблицы
 data class Gallery(
 
-    //@PrimaryKey(autoGenerate = true)
+    @PrimaryKey
+    val id: Long = 999L,                         //id галлереи
+    var urlcover: String? = "",                 //URL где хранится обложка
+    var h1: String = "empty",                       //Название
+    var num_pages: Int = 0,                    //Количество страниц
+    var uploaded: String = "",                  //Дата загрузки на сервер
 
-     @PrimaryKey
-     val id: Long,  //id галлереи
-
-    // val firstName: String?,
-    //@ColumnInfo(name = "last_name") val lastName: String?,
-
-    var urlcover: String?, //URL где хранится обложка
-    var h1: String?,        //Название
-    var num_pages: Int,     //Количество страниц
-    var uploaded: String,   //Дата загрузки на сервер
-
-    //var selectedPage : Int  //Номер выбранной картинки 1..num_pages
-
-
-
-
+    var AllDataComplete: Boolean = false,  //Содержит полностью все данные //Это значит что OriginalUrl записан везде
+    var downloaded: Boolean = false,       // Признак того что галерея загружена на диск
 )
 
 //@Entity( tableName = "gallery") //Имя таблицы
 
 
-@Entity ( foreignKeys = (arrayOf(ForeignKey(entity = Gallery::class, parentColumns = arrayOf("id"), childColumns = arrayOf("gallery_id"), onDelete = CASCADE))))
+@Entity(
+    foreignKeys = (arrayOf(
+        ForeignKey(
+            entity = Gallery::class,
+            parentColumns = arrayOf("id"),
+            childColumns = arrayOf("gallery_id"),
+            onDelete = CASCADE
+        )
+    ))
+)
 data class EntityThumbContainer(
 
     @PrimaryKey(autoGenerate = true)
-    var id : Long =  0L,
+    var id: Long = 0L,
 
-    var gallery_id : Long,
+    var gallery_id: Long,
 
-    var href: String? = "1", //Адрес страницы по нажатию
-    var url: String? = "2",  //Адрес самой иконки
+    var href: String? = null,        //Адрес страницы по нажатию       /g/403149/6/
+    var urlthumb: String? = null,    //Адрес самой иконки              https://img.dogehls.xyz/galleries/2220566/6t.jpg
 
-    var urlOriginal: String? = "3", //Адрес оригинальной страницы получаем после парсинга по href
-
-
-
-
-
+    var urloriginal: String? = null, //Адрес оригинальной страницы получаем после парсинга по href
 
 )

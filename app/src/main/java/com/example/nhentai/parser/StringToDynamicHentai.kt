@@ -1,5 +1,6 @@
 package com.example.nhentai.parser
 
+import com.example.nhentai.GlobalId
 import com.example.nhentai.model.DynamicNHentai
 import com.example.nhentai.model.NHentaiTag
 import com.example.nhentai.model.TagContainer
@@ -10,9 +11,28 @@ import timber.log.Timber
 
 fun stringToDynamicHentai(html: String): DynamicNHentai {
 
-    println("stringToDynamicHentai")
+    println("stringToDynamicHentai html len ${html.length}")
+
+    if (html.contains("<title>Not Found</title>"))
+    {
+        println("Страница не найдена 404 Not Found")
+
+        return DynamicNHentai(
+            id = GlobalId,
+            h1 = "404 Not Found",
+            urlCover = "",
+            tags = null,
+            num_pages = 0,
+            uploaded = "",
+            thumbContainers = null,
+            selectedPage = 1
+        )
+
+    }
+
 
     val doc: Document = Jsoup.parse(html)
+
     val bigContainer = doc.getElementById("bigcontainer")
 
     val coverURL = bigContainer?.getElementById("cover")?.getElementsByTag("a")?.get(0)
@@ -20,17 +40,16 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
 
     val info = bigContainer?.getElementById("info")
     val h1 = info?.getElementsByTag("h1")?.get(0)?.childNode(0).toString()
-
+    var id = 0
     try {
-        val h2 = info?.getElementsByTag("h2")?.get(0)?.childNode(0).toString()
-    }
-    catch (e : Exception)
-    {
+
+        //val h2 = info?.getElementsByTag("h2")?.get(0)?.childNode(0).toString()
+
+        id = info?.getElementsByTag("h3")?.get(0)?.childNode(1).toString().toInt()
+
+    } catch (e: Exception) {
         Timber.e(e.message)
     }
-
-    val id = info?.getElementsByTag("h3")?.get(0)?.childNode(1).toString().toInt()
-
     val tags = info?.getElementById("tags")?.getElementsByClass("tag-container field-name")
     val tags1 = info?.getElementById("tags")?.getElementsByClass("tag-container field-name ")
 
@@ -86,10 +105,9 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
         }
     }
 
-    val item: DynamicNHentai = DynamicNHentai(
+    return DynamicNHentai(
         id = id,
         h1 = h1,
-        //h2 = h2,
         urlCover = coverURL,
         tags = tagContainerAll,
         num_pages = pages,
@@ -97,7 +115,5 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
         thumbContainers = thumbContainers,
         selectedPage = 1
     )
-
-    return item
 
 }

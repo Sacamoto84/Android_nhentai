@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -47,7 +46,6 @@ import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
-import com.example.nhentai.DN
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -205,10 +203,11 @@ fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
                 Button(onClick = { viewModel.previous() }) {
                 }
 
-                Text(
-                    text = page.value.toString() + " / " + DN.num_pages.toString(),
-                    color = Color(0xFFC3C3C3)
-                )
+//                Text(
+//                    text = page.value.toString() + " / " + DN.num_pages.toString(),
+//
+//                    color = Color(0xFFC3C3C3)
+//                )
 
                 Button(onClick = { viewModel.next() }) {
                 }
@@ -231,7 +230,6 @@ suspend fun PointerInputScope.detectTransformGestures(
     onGestureEnd: () -> Unit = {},
 ) {
     forEachGesture {
-
 
         awaitPointerEventScope {
             var rotation = 0f

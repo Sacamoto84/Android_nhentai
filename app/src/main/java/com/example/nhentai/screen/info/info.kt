@@ -5,7 +5,6 @@ import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.DecayAnimationSpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.animation.rememberSplineBasedDecay
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.FlingBehavior
@@ -26,8 +25,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.DisposableEffectResult
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,19 +38,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.MeasurePolicy
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
-import com.example.nhentai.DN
+import com.example.nhentai.GlobalId
 import com.example.nhentai.cache.URLtoFilePath
 import com.example.nhentai.cache.cacheCheck
 import com.example.nhentai.cache.cacheFileWrite
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlin.math.abs
@@ -157,12 +148,9 @@ var iid by mutableStateOf(403148)
 fun Info(
     navController: NavHostController,
     viewModel: vmInfo,
-    id: Int = 403147,
 ) {
 
     //val viewModel: vmInfo = viewModel()
-
-    println(viewModel)
 
     Column() {
         Box(
@@ -171,7 +159,7 @@ fun Info(
                 .weight(1f)
         )
         {
-            ScreenInfo(navController, viewModel = viewModel, id = { iid })
+            ScreenInfo(navController, viewModel = viewModel, id =  GlobalId )
         }
         Box(
             modifier = Modifier
@@ -183,13 +171,13 @@ fun Info(
 
             Row() {
 
-                Button(onClick = { iid -= 1 }) {
+                Button(onClick = { GlobalId -= 1 }) {
                     Text(text = "-")
                 }
 
-                Text(text = "$iid")
+                Text(text = "$GlobalId")
 
-                Button(onClick = { iid += 1 }) {
+                Button(onClick = { GlobalId += 1 }) {
                     Text(text = "+")
                 }
 
@@ -204,32 +192,48 @@ fun Info(
 
 }
 
+
+
+
+
+
+
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(DelicateCoroutinesApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun ScreenInfo(
     navController: NavHostController,
     viewModel: vmInfo,
-    id: () -> Int,
+    id:  Int,
 ) {
 
     val scrollState = rememberScrollState()
 
-    Timber.i("ScreenInfo id ${id()}")
+    Timber.i("ScreenInfo id $id")
 
-    LaunchedEffect(key1 = id() ) {
+    LaunchedEffect(key1 = true, key2 = id ) {
         //viewModel.startLogging()
-        Timber.i("ScreenInfo LaunchedEffect")
-        viewModel.launchReadFromId(id())
+        Timber.i("...ScreenInfo LaunchedEffect")
+        viewModel.launchReadFromId(id)
     }
 
-    if (viewModel.ReedDataComplete.value) {
+    val s = viewModel.thumb
 
-        Box( modifier = Modifier.fillMaxSize().background(Color(0xFF1F1F1F)) )
+    if ((viewModel.ReedDataComplete.value) || true )
+    {
+
+
+
+        Box( modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF1F1F1F)) )
         {
 
-            Column( modifier = Modifier.fillMaxSize().verticalScroll(state = scrollState, flingBehavior = flingBehavior()) )
+            Column( modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(state = scrollState, flingBehavior = flingBehavior()) )
             {
+
 
                 Spacer(modifier = Modifier.height(8.dp))
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -237,26 +241,25 @@ fun ScreenInfo(
                     AsyncImage(
                         modifier = Modifier
                             .fillMaxWidth(0.7f),
-                        model = DN.urlCover,
+                        model = viewModel.gallery.urlcover,
                         contentDescription = null
                     )
 
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = DN.h1.toString(), color = Color(0xFFD9D9D9))
-                Spacer(modifier = Modifier.height(8.dp))
-                //Text(text = DN.h2.toString(), color = Color(0xFFD9D9D9))
-
-                Button(onClick = { viewModel.launchIndexirovanieOriginal() }) {
-                    Text(text = "Индексирование")
-                }
 
                 Spacer(modifier = Modifier.height(8.dp))
+                Text(text = viewModel.gallery.h1.toString(), color = Color(0xFFD9D9D9))
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = viewModel.gallery.id.toString(), color = Color(0xFFD9D9D9))
 
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = GlobalId.toString(), color = Color.Red)
 
+//                Button(onClick = { viewModel.launchIndexirovanieOriginal() }) {
+//                    Text(text = "Индексирование")
+//                }
 
-
-
+                Spacer(modifier = Modifier.height(8.dp))
 
 
                 FlowRow(
@@ -269,64 +272,37 @@ fun ScreenInfo(
                 )
                 {
 
-                    DN.thumbContainers.forEachIndexed { index, i ->
+
+                    s.forEach { i ->
 
                         //Поместить в кеш эскиз
                         //viewModel.cacheThumbalis(i.url.toString())
 
 
                         //val address = i.url.toString()
-                        val address =
-                            if (!cacheCheck(i.url.toString())) {
-                                cacheFileWrite(i.url.toString())
-                                i.url.toString()
-                            } else {
-                                URLtoFilePath(i.url.toString())
-                            }
 
-//                        val painter = rememberAsyncImagePainter(
-//                            model = address
+//                        val address =
+//                            if (!cacheCheck(i.urlthumb.toString())) {
+//                                cacheFileWrite(i.urlthumb.toString())
+//                                i.urlthumb.toString()
+//                            } else {
+//                                URLtoFilePath(i.urlthumb.toString())
+//                            }
+
+//                        AsyncImage(
+//                            modifier = Modifier
+//                                .fillMaxWidth(0.3f)
+//                                .padding(top = 8.dp)
+//                                .clickable {
+//                                    navController.navigate(
+//                                        "viewer",
+//                                    ) //По нажатию открываем viewer
+//
+//                                },
+//                            model = address//i.url.toString()
+//                            ,
+//                            contentDescription = null, contentScale = ContentScale.Crop
 //                        )
-
-
-
-
-
-
-                        AsyncImage(
-                            modifier = Modifier
-                                .fillMaxWidth(0.3f)
-                                .padding(top = 8.dp)
-                                .clickable {
-
-                                    //Нажатие на иконку
-//                                    viewModel.launchReadOriginalImageFromHref(
-//                                        i.href.toString(),
-//                                        index
-//                                    )
-
-                                    DN.selectedPage = index + 1
-
-                                    navController.navigate(
-                                        "viewer",
-
-//                                        builder = {
-//
-//                                            popUpTo("info") {
-//                                                inclusive = true
-//                                            }
-//
-//                                        }
-
-
-                                    ) //По нажатию открываем viewer
-
-                                },
-
-                            model = address//i.url.toString()
-                            ,
-                            contentDescription = null, contentScale = ContentScale.Crop
-                        )
 
                     }
 

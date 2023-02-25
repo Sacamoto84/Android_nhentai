@@ -2,17 +2,14 @@ package com.example.nhentai.model
 
 data class DynamicNHentai
     (
-    var id: Int,
-    var urlCover: String?,
-    var h1: String?,
-    var h2: String?="null",
+    var id: Int = 0,
+    var urlCover: String? = "",
+    var h1: String = "",
     var tags: MutableList<TagContainer>?,
-    var num_pages: Int,         //Количество страниц
-    var uploaded: String,
-    var thumbContainers: MutableList<ThumbContainer>, //Список Иконок
-
-    var selectedPage : Int //Номер выбранной картинки 1..num_pages
-
+    var num_pages: Int = 0,         //Количество страниц
+    var uploaded: String = "",
+    var thumbContainers: MutableList<ThumbContainer>?, //Список Иконок
+    var selectedPage: Int = 1//Номер выбранной картинки 1..num_pages
 )
 
 data class TagContainer(

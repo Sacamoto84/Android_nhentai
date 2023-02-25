@@ -1,27 +1,25 @@
 package com.example.nhentai.screen.info
 
 import android.annotation.SuppressLint
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.nhentai.DN
 import com.example.nhentai.api.readHtmlFromURL
 import com.example.nhentai.cache.cacheCheck
 import com.example.nhentai.cache.cacheFileWrite
 import com.example.nhentai.parser.stringToDynamicHentai
-import com.example.nhentai.parser.stringToUrlOriginal
-import com.example.nhentai.room.AppDatabase
 import com.example.nhentai.room.EntityThumbContainer
 import com.example.nhentai.room.Gallery
 import com.example.nhentai.room.YourRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.random.Random
+
 
 @SuppressLint("StaticFieldLeak")
 @HiltViewModel
@@ -32,6 +30,9 @@ class vmInfo @Inject constructor(
     private val repository: YourRepository
 
 ) : ViewModel() {
+
+    var gallery by mutableStateOf(Gallery())
+    var thumb = mutableListOf<EntityThumbContainer>()
 
     init {
         Timber.i("Создание вьюмодели vmInfo")
@@ -46,26 +47,28 @@ class vmInfo @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         Timber.i("................onCleared")
+
+        //DN = DynamicNHentai(0,"","null","null", null, 0, "", null, 0)
     }
 
     var ReedDataComplete = mutableStateOf(false) //Признак того что данные прочитаны полностью
 
     var IndexirovanieComplete = mutableStateOf(false)
 
-    ////////////////////////////////////////////////////////
-    fun launchIndexirovanieOriginal() {
-        Timber.i("...Запуск Индексирования")
-
-        IndexirovanieComplete.value = false
-
-        DN.thumbContainers.forEachIndexed { index, i ->
-            Timber.i("...Индексирование index:$index href:${i.href.toString()}")
-            viewModelScope.launch(Dispatchers.IO) {
-                launchReadOriginalImageFromHref(i.href.toString(), index)
-            }
-        }
-
-    }
+//    ////////////////////////////////////////////////////////
+//    fun launchIndexirovanieOriginal() {
+//        Timber.i("...Запуск Индексирования")
+//
+//        IndexirovanieComplete.value = false
+//
+//        DN.thumbContainers?.forEachIndexed { index, i ->
+//            Timber.i("...Индексирование index:$index href:${i.href.toString()}")
+//            viewModelScope.launch(Dispatchers.IO) {
+//                launchReadOriginalImageFromHref(i.href.toString(), index)
+//            }
+//        }
+//
+//    }
 
     fun cacheThumbalis(url: String) {
         Timber.i("...cacheThumbalis")
@@ -78,101 +81,108 @@ class vmInfo @Inject constructor(
     }
 
     ////////////////////////////////////////////////////////
-    fun launchReadFromId(id: Int = 403147) {
+    //  Запуск при открытии страницы
+    ////////////////////////////////////////////////////////
+    fun launchReadFromId(id: Int) {
         Timber.i("...launchReadFromId() $id")
         ReedDataComplete.value = false
         viewModelScope.launch(Dispatchers.IO) {
-            val html = readHtmlFromURL("https://nhentai.to/g/$id")
-            DN = stringToDynamicHentai(html)
-            ReedDataComplete.value = true
 
 
-            run{
-                    Timber.i("Добавление в Room записи DN id:${DN.id}")
+            val isExistInRoom = repository.isGalleryExist(id.toLong())
+            Timber.i("Запись id $id существует в Room = $isExistInRoom")
+
+            //Записи нет читаем из сети
+            if (!isExistInRoom) {
+                Timber.i("Запись id $id нет в Room читаем из сети")
+                val html = readHtmlFromURL("https://nhentai.to/g/$id")
+                if (html.isBlank()) {
+                    Timber.e("html пустой")
+                }
+
+                val tempDN = stringToDynamicHentai(html)
+                ReedDataComplete.value = true
+
+                run {
+                    Timber.i("Добавление в Room записи DN id:${tempDN.id}")
                     try {
-
                         repository.insertInInDB(
                             Gallery(
-                                DN.id.toLong(),
-                                urlcover = DN.urlCover,
-                                h1 = DN.h1,
-                                num_pages = DN.num_pages,
-                                uploaded = DN.uploaded,
+                                tempDN.id.toLong(),
+                                urlcover = tempDN.urlCover,
+                                h1 = tempDN.h1,
+                                num_pages = tempDN.num_pages,
+                                uploaded = tempDN.uploaded
                             )
                         )
 
-                        DN.thumbContainers.forEach { it ->
-
+                        //Помещаем в Room ThumbContainer
+                        tempDN.thumbContainers?.forEach { it ->
                             repository.insertInThumbContainer(
                                 EntityThumbContainer(
-                                    gallery_id = DN.id.toLong(),
+                                    gallery_id = tempDN.id.toLong(),
                                     href = it.href,
-                                    url = it.url,
-                                    urlOriginal = it.urlOriginal
+                                    urlthumb = it.url,
+                                    urloriginal = it.urlOriginal
                                 )
                             )
-
-
                         }
 
 
 
+                        gallery = repository.galleryById(id.toLong()) //Читаем текущую галерею
+                        thumb.clear()
+                        thumb = repository.getThumbContainerById(id.toLong()).toMutableList()
 
+                    } catch (e: Exception) {
+                        Timber.e("repository.insertInInDB " + e.message)
                     }
-                    catch (e: Exception)
-                    {
-                        Timber.e("repository.insertInInDB "+e.message)
-                    }
+                }
+            } else {
+
+                gallery = repository.galleryById(id.toLong()) //Читаем текущую галерею
+                thumb.clear()
+                thumb = repository.getThumbContainerById(id.toLong()).toMutableList()
 
             }
 
 
-
         }
+
     }
 
-
-
-    fun deleteGalleryById()
-    {
+    //Удалить запись из Room, висит на кнопке удалить
+    fun deleteGalleryById() {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.galleryDeleteById(DN.id.toLong())
+            //DNGallery.value?.id?.let { repository.galleryDeleteById(it.toLong()) }
         }
     }
 
-
-
-
-
-    //Нажание на эскиз запросит OriginalUrl и сохранит его в кеш
-    fun launchReadOriginalImageFromHref(href: String, index: Int) {
-        Timber.i("...launchReadOriginalImageFromHref()")
-
-        viewModelScope.launch(Dispatchers.IO) {
-
-            //Timber.i("Ok1")
-            var s = "https://nhentai.to${href}"
-
-            if (s.last() == '/')
-                s = s.dropLast(1)
-
-            val html = readHtmlFromURL(s)
-
-            //Timber.i("Ok2")
-            val OriginalURL = stringToUrlOriginal(html)
-
-            DN.thumbContainers[index].urlOriginal = OriginalURL
-
-            Timber.i("OriginalURL = $OriginalURL")
-
-            //Если нет файла то создадим для него кеш
-            if (OriginalURL?.let { cacheCheck(it) } == false) {
-                cacheFileWrite(OriginalURL)
-            }
-
-        }
-
-    }
+//    //Нажание на эскиз запросит OriginalUrl и сохранит его в кеш
+//    fun launchReadOriginalImageFromHref(href: String, index: Int) {
+//        Timber.i("...launchReadOriginalImageFromHref()")
+//
+//        viewModelScope.launch(Dispatchers.IO) {
+//
+//            //Timber.i("Ok1")
+//            var s = "https://nhentai.to${href}"
+//
+//            if (s.last() == '/')
+//                s = s.dropLast(1)
+//
+//            val OriginalURL = stringToUrlOriginal(readHtmlFromURL(s))
+//            DN.thumbContainers?.get(index)?.urlOriginal = OriginalURL
+//
+//            Timber.i("OriginalURL = $OriginalURL")
+//
+//            //Если нет файла то создадим для него кеш
+//            if (OriginalURL?.let { cacheCheck(it) } == false) {
+//                cacheFileWrite(OriginalURL)
+//            }
+//
+//        }
+//
+//    }
 
 
 }
