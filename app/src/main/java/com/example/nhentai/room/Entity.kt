@@ -48,6 +48,7 @@ data class EntityThumbContainer(
 
     var gallery_id: Long,
 
+    var num : Int = 1,               //Номер страницы
     var href: String? = null,        //Адрес страницы по нажатию       /g/403149/6/
     var urlthumb: String? = null,    //Адрес самой иконки              https://img.dogehls.xyz/galleries/2220566/6t.jpg
 

@@ -14,6 +14,7 @@ import com.example.nhentai.api.readHtmlFromURL
 import com.example.nhentai.cache.cacheCheck
 import com.example.nhentai.cache.cacheFileWrite
 import com.example.nhentai.parser.stringToDynamicHentai
+import com.example.nhentai.parser.stringToUrlOriginal
 import com.example.nhentai.room.EntityThumbContainer
 import com.example.nhentai.room.Gallery
 import com.example.nhentai.room.YourRepository
@@ -103,52 +104,80 @@ class vmInfo @Inject constructor(
 
                 val tempDN = stringToDynamicHentai(html)
 
+                Timber.i("Добавление в Room записи DN id:${tempDN.id}")
+                try {
 
-                run {
-                    Timber.i("Добавление в Room записи DN id:${tempDN.id}")
-                    try {
+                    repository.insertInInDB(
+                        Gallery(
+                            tempDN.id.toLong(),
+                            urlcover = tempDN.urlCover,
+                            h1 = tempDN.h1,
+                            num_pages = tempDN.num_pages,
+                            uploaded = tempDN.uploaded
+                        )
+                    )
 
-                        repository.insertInInDB(
-                            Gallery(
-                                tempDN.id.toLong(),
-                                urlcover = tempDN.urlCover,
-                                h1 = tempDN.h1,
-                                num_pages = tempDN.num_pages,
-                                uploaded = tempDN.uploaded
+                    //Помещаем в Room ThumbContainer
+                    tempDN.thumbContainers?.forEachIndexed { index, it ->
+                        repository.insertInThumbContainer(
+                            EntityThumbContainer(
+                                gallery_id = tempDN.id.toLong(),
+                                href = it.href,
+                                urlthumb = it.url,
+                                urloriginal = it.urlOriginal,
+                                num = index + 1
                             )
                         )
-
-                        //Помещаем в Room ThumbContainer
-                        tempDN.thumbContainers?.forEach { it ->
-                            repository.insertInThumbContainer(
-                                EntityThumbContainer(
-                                    gallery_id = tempDN.id.toLong(),
-                                    href = it.href,
-                                    urlthumb = it.url,
-                                    urloriginal = it.urlOriginal
-                                )
-                            )
-                        }
-
-                        gallery = repository.galleryById(id.toLong()) //Читаем текущую галерею
-                        thumb.addAll(repository.getThumbContainerById(id.toLong()))
-
-                    } catch (e: Exception) {
-                        Timber.e("repository.insertInInDB " + e.message)
                     }
+
+                    gallery = repository.galleryById(id.toLong()) //Читаем текущую галерею
+                    thumb.addAll(repository.getThumbContainerById(id.toLong()))
+
+                } catch (e: Exception) {
+                    Timber.e("repository.insertInInDB " + e.message)
                 }
+
             } else {
 
                 gallery = repository.galleryById(id.toLong()) //Читаем текущую галерею
-                thumb .addAll(repository.getThumbContainerById(id.toLong()))
+                thumb.addAll(repository.getThumbContainerById(id.toLong()))
+
+            }
+
+            if ((thumb.size != 0) && (!gallery.AllDataComplete)) {
+                //Если есть записи по эскизам, получим список оригиналов
+                Timber.i("...Получение Оригинал по href()")
+                val shot = thumb.toList()
+                launch(Dispatchers.IO) {
+
+                    for (i in shot.indices) {
+                        var s = "https://nhentai.to${shot[i].href}"
+                        if (s.last() == '/') s = s.dropLast(1)
+                        val originalURL = stringToUrlOriginal(readHtmlFromURL(s))
+                        shot[i].urloriginal = originalURL
+                        Timber.i("originalURL = $originalURL")
+                    }
+
+                    //Получили список оригинал адресов и записали в базу
+                    for (i in shot.indices) {
+                        shot[i].urloriginal?.let {
+                            repository.updateOriginal(
+                                shot[i].gallery_id, (i + 1).toLong(),
+                                it
+                            )
+                        }
+                    }
+
+                    //Установили признак того что все оригинал записаны в базу
+                    repository.updateAllDataComplete(shot[0].gallery_id, true)
+
+                }
 
             }
 
             Timber.i("Закончили ...launchReadFromId() 0")
 
         }
-
-
 
 
     }

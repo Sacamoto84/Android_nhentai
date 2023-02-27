@@ -48,6 +48,11 @@ interface GalleryDao {
 //    fun findByName(first: String, last: String): User
 //
 
+
+    //Обновить признак того что весь адресс оригинал загружен
+    @Query("UPDATE gallery SET AllDataComplete = :complete WHERE id = :id")
+    fun updateAllDataComplete(id : Long, complete : Boolean)
+
     //В режиме REPLACE старая запись будет заменена новой.
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(vararg gallery: Gallery)
@@ -60,6 +65,7 @@ interface GalleryDao {
 
     @Query("DELETE FROM gallery")
     fun deleteAll()
+
 
 
 
@@ -82,6 +88,10 @@ interface EntityThumbContainerDao {
     //Получить по требуемому id
     @Query("SELECT * from EntityThumbContainer WHERE gallery_id = :id")
     fun getEntityThumbContainerById(id: Long): List<EntityThumbContainer>
+
+    //Обновить адресс оригинала по номеру галлереи и номеру страницы
+    @Query("UPDATE EntityThumbContainer SET urloriginal = :url WHERE gallery_id = :gallery_id AND num = :num")
+    fun updateOriginal(gallery_id : Long, num : Long, url : String)
 
     //В режиме REPLACE старая запись будет заменена новой.
     @Insert(onConflict = OnConflictStrategy.REPLACE)

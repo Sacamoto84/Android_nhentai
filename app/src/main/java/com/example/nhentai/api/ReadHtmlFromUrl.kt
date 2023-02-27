@@ -18,12 +18,12 @@ import java.net.InetSocketAddress
 import java.net.Proxy
 
 suspend fun readHtmlFromURL(url : String = "https://nhentai.to/g/403146"): String {
-    Timber.i("..readHtmlFromURL")
+    Timber.i("..readHtmlFromURL $url ")
 
     val client = HttpClient(Android)//(OkHttp)
     {
         install(Logging) {
-            level = LogLevel.ALL
+            level = LogLevel.NONE
             //logger = Logger.DEFAULT
 
         //level = LogLevel.HEADERS
@@ -32,7 +32,7 @@ suspend fun readHtmlFromURL(url : String = "https://nhentai.to/g/403146"): Strin
 
         install(HttpTimeout)
         {
-            requestTimeoutMillis = 60000
+            requestTimeoutMillis = Long.MAX_VALUE
         }
 
 

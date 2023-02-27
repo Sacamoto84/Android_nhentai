@@ -5,28 +5,24 @@ import javax.inject.Inject
 class YourRepository @Inject constructor(
     private val galleryDAO: GalleryDao,
     private val thumbContainerDAO: EntityThumbContainerDao
-){
-
-
-
-
-
+) {
 
 
     /////////////////
     //Snapshot
     //Предоставить галереи по id
-    suspend fun galleryById(id: Long) =  galleryDAO.getGalleryById(id)
+    suspend fun galleryById(id: Long) = galleryDAO.getGalleryById(id)
 
     //Предоставить thumbContainer по id
-    suspend fun getThumbContainerById(id: Long) =  thumbContainerDAO.getEntityThumbContainerById(id)
+    suspend fun getThumbContainerById(id: Long) = thumbContainerDAO.getEntityThumbContainerById(id)
     /////////////////
 
 
+    suspend fun updateOriginal(gallery_id: Long, num: Long, url: String) =
+        thumbContainerDAO.updateOriginal(gallery_id, num, url)
 
 
-
-
+    suspend fun updateAllDataComplete(id : Long, complete : Boolean) = galleryDAO.updateAllDataComplete(id, complete)
 
 
     suspend fun numberOfItemsInDB() = galleryDAO.getAll()
@@ -35,16 +31,14 @@ class YourRepository @Inject constructor(
     //suspend fun isGalleryDownloaded(id : Long) = galleryDAO.isGalleryDownloaded(id)
 
     //Проверка на существование записи id
-    suspend fun isGalleryExist(id : Long) = galleryDAO.isExist(id)
+    suspend fun isGalleryExist(id: Long) = galleryDAO.isExist(id)
 
     suspend fun insertInInDB(gallery: Gallery) = galleryDAO.insertAll(gallery)
 
     suspend fun galleryDeleteById(id: Long) = galleryDAO.deleteById(id)
 
-    suspend fun insertInThumbContainer(entity: EntityThumbContainer) = thumbContainerDAO.insertAll(entity)
-
-
-
+    suspend fun insertInThumbContainer(entity: EntityThumbContainer) =
+        thumbContainerDAO.insertAll(entity)
 
 
 }

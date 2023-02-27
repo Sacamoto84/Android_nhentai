@@ -159,7 +159,7 @@ fun Info(
                 .weight(1f)
         )
         {
-            ScreenInfo(navController, viewModel = viewModel, id =  GlobalId )
+            ScreenInfo(navController, viewModel = viewModel, id = GlobalId)
         }
         Box(
             modifier = Modifier
@@ -193,25 +193,20 @@ fun Info(
 }
 
 
-
-
-
-
-
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(DelicateCoroutinesApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun ScreenInfo(
     navController: NavHostController,
     viewModel: vmInfo,
-    id:  Int,
+    id: Int,
 ) {
 
     val scrollState = rememberScrollState()
 
     Timber.i("ScreenInfo id $id")
 
-    LaunchedEffect(key1 = true, key2 = id ) {
+    LaunchedEffect(key1 = true, key2 = id) {
         //viewModel.startLogging()
         Timber.i("...ScreenInfo LaunchedEffect")
         viewModel.launchReadFromId(id)
@@ -219,147 +214,91 @@ fun ScreenInfo(
 
     //val s = viewModel.thumb
 
-    if ( true )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF1F1F1F))
+    )
     {
 
-
-
-        Box( modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF1F1F1F)) )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(state = scrollState, flingBehavior = flingBehavior())
+        )
         {
 
-            Column( modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(state = scrollState, flingBehavior = flingBehavior()) )
-            {
 
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
 
-                Spacer(modifier = Modifier.height(8.dp))
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                AsyncImage(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f),
+                    model = viewModel.gallery.urlcover,
+                    contentDescription = null
+                )
 
-                    AsyncImage(
-                        modifier = Modifier
-                            .fillMaxWidth(0.7f),
-                        model = viewModel.gallery.urlcover,
-                        contentDescription = null
-                    )
+            }
 
-                }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = viewModel.gallery.h1.toString(), color = Color(0xFFD9D9D9))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = viewModel.gallery.id.toString(), color = Color(0xFFD9D9D9))
 
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = viewModel.gallery.h1.toString(), color = Color(0xFFD9D9D9))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = viewModel.gallery.id.toString(), color = Color(0xFFD9D9D9))
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = GlobalId.toString(), color = Color.Red)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = GlobalId.toString(), color = Color.Red)
 
 //                Button(onClick = { viewModel.launchIndexirovanieOriginal() }) {
 //                    Text(text = "Индексирование")
 //                }
 
-                Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
 
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    maxItemsInEachRow = 3//viewModel.DN.num_pages/1
-                    ,
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                maxItemsInEachRow = 3//viewModel.DN.num_pages/1
+                ,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
 
-                )
-                {
+            )
+            {
 
+                for (i in 0 until viewModel.thumb.size) {
 
-                    for(i in 0 until viewModel.thumb.size)
-                    {
+                    val address =
+                        if (!cacheCheck(viewModel.thumb[i].urlthumb.toString())) {
+                            cacheFileWrite(viewModel.thumb[i].urlthumb.toString())
+                            viewModel.thumb[i].urlthumb.toString()
+                        } else {
+                            URLtoFilePath(viewModel.thumb[i].urlthumb.toString())
+                        }
 
-                        Timber.i("address")
+                    Timber.i("address $address")
 
-                        val address =
-                            if (!cacheCheck(viewModel.thumb[i].urlthumb.toString())) {
-                                cacheFileWrite(viewModel.thumb[i].urlthumb.toString())
-                                viewModel.thumb[i].urlthumb.toString()
-                            } else {
-                                URLtoFilePath(viewModel.thumb[i].urlthumb.toString())
-                            }
-
-                        AsyncImage(
-                            modifier = Modifier
-                                .fillMaxWidth(0.3f)
-                                .padding(top = 8.dp)
-                                .clickable {
-                                    navController.navigate(
-                                        "viewer",
-                                    ) //По нажатию открываем viewer
-
-                                },
-                            model = address//i.url.toString()
-                            ,
-                            contentDescription = null, contentScale = ContentScale.Crop
-                        )
-                    }
-
-
-
-
-                    //viewModel.thumb.forEach { i ->
-
-                        //Поместить в кеш эскиз
-                        //viewModel.cacheThumbalis(i.url.toString())
-
-
-                        //val address = i.urlthumb.toString()
-
-                      //  Timber.i("address")
-
-//                        val address =
-//                            if (!cacheCheck(i.urlthumb.toString())) {
-//                                cacheFileWrite(i.urlthumb.toString())
-//                                i.urlthumb.toString()
-//                            } else {
-//                                URLtoFilePath(i.urlthumb.toString())
-//                            }
-//
-//                        AsyncImage(
-//                            modifier = Modifier
-//                                .fillMaxWidth(0.3f)
-//                                .padding(top = 8.dp)
-//                                .clickable {
-//                                    navController.navigate(
-//                                        "viewer",
-//                                    ) //По нажатию открываем viewer
-//
-//                                },
-//                            model = address//i.url.toString()
-//                            ,
-//                            contentDescription = null, contentScale = ContentScale.Crop
-//                        )
-
-                   // }
-
+                    AsyncImage(
+                        modifier = Modifier
+                            .fillMaxWidth(0.3f)
+                            .padding(top = 8.dp)
+                            .clickable {
+                                navController.navigate(
+                                    "viewer",
+                                ) //По нажатию открываем viewer
+                            },
+                        model = address//i.url.toString()
+                        ,
+                        contentDescription = null, contentScale = ContentScale.Crop
+                    )
                 }
-
 
             }
 
         }
 
-    } else {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF1F1F1F))
-        )
 
-        {
-
-        }
     }
-
-
 }
-
 

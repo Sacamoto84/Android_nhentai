@@ -112,9 +112,9 @@ fun cacheFileWrite(url: String) {
         {
             install(HttpTimeout)
             {
-                requestTimeoutMillis = 260000
-                connectTimeoutMillis = 260000
-                socketTimeoutMillis = 260000
+                requestTimeoutMillis = 26000000
+                connectTimeoutMillis = 26000000
+                socketTimeoutMillis = 26000000
             }
         }
 
