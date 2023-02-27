@@ -24,7 +24,9 @@ sealed class Screen(val route: String) {
 
 var DNselectedPage = 1
 
-var GlobalId by mutableStateOf(30000)
+var GlobalId by mutableStateOf(400000)
+
+var x = MutableLiveData<Int>()
 
 
 @SuppressLint("StaticFieldLeak")

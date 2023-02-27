@@ -217,9 +217,9 @@ fun ScreenInfo(
         viewModel.launchReadFromId(id)
     }
 
-    val s = viewModel.thumb
+    //val s = viewModel.thumb
 
-    if ((viewModel.ReedDataComplete.value) || true )
+    if ( true )
     {
 
 
@@ -273,13 +273,47 @@ fun ScreenInfo(
                 {
 
 
-                    s.forEach { i ->
+                    for(i in 0 until viewModel.thumb.size)
+                    {
+
+                        Timber.i("address")
+
+                        val address =
+                            if (!cacheCheck(viewModel.thumb[i].urlthumb.toString())) {
+                                cacheFileWrite(viewModel.thumb[i].urlthumb.toString())
+                                viewModel.thumb[i].urlthumb.toString()
+                            } else {
+                                URLtoFilePath(viewModel.thumb[i].urlthumb.toString())
+                            }
+
+                        AsyncImage(
+                            modifier = Modifier
+                                .fillMaxWidth(0.3f)
+                                .padding(top = 8.dp)
+                                .clickable {
+                                    navController.navigate(
+                                        "viewer",
+                                    ) //По нажатию открываем viewer
+
+                                },
+                            model = address//i.url.toString()
+                            ,
+                            contentDescription = null, contentScale = ContentScale.Crop
+                        )
+                    }
+
+
+
+
+                    //viewModel.thumb.forEach { i ->
 
                         //Поместить в кеш эскиз
                         //viewModel.cacheThumbalis(i.url.toString())
 
 
-                        //val address = i.url.toString()
+                        //val address = i.urlthumb.toString()
+
+                      //  Timber.i("address")
 
 //                        val address =
 //                            if (!cacheCheck(i.urlthumb.toString())) {
@@ -288,7 +322,7 @@ fun ScreenInfo(
 //                            } else {
 //                                URLtoFilePath(i.urlthumb.toString())
 //                            }
-
+//
 //                        AsyncImage(
 //                            modifier = Modifier
 //                                .fillMaxWidth(0.3f)
@@ -304,7 +338,7 @@ fun ScreenInfo(
 //                            contentDescription = null, contentScale = ContentScale.Crop
 //                        )
 
-                    }
+                   // }
 
                 }
 

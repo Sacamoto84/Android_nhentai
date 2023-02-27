@@ -80,9 +80,9 @@ fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
 //
 //    }
 
-    var offset by remember { mutableStateOf(Offset.Zero) }
-    var centroid by remember { mutableStateOf(Offset.Zero) }
-    var angle by remember { mutableStateOf(0f) }
+    //var offset by remember { mutableStateOf(Offset.Zero) }
+    //var centroid by remember { mutableStateOf(Offset.Zero) }
+    //var angle by remember { mutableStateOf(0f) }
 
     val decimalFormat = remember { DecimalFormat("0.0") }
 

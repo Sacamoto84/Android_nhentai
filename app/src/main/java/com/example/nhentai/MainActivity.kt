@@ -29,15 +29,13 @@ import com.jakewharton.picnic.table
 import com.tomclaw.cache.DiskLruCache
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 import timber.log.Timber.Forest.plant
 import java.io.File
 
-lateinit var cacheDir1 : File
-lateinit var cacheDirTemp : File
+lateinit var cacheDir1: File
+lateinit var cacheDirTemp: File
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -46,7 +44,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        plant(DebugTree())
+
+          //PropertyConfigurator.configure("D:\\Dropbox\\Android\\nhentai\\app\\log4j.p")
+
+
+//        if (BuildConfig.DEBUG) {
+//            plant(TimberRemoteTree())
+//        } else
+
+            plant(DebugTree())
+
+
 
         Timber.i("Hello")
 
@@ -58,7 +66,7 @@ class MainActivity : ComponentActivity() {
         //val  journalFile = applicationContext.getExternalFilesDir("/DiskLruCache2/journalFile")
         //val  journalBkpFile= applicationContext.getExternalFilesDir("/DiskLruCache2/Bkp")
 
-        lruCache = DiskLruCache.create(cacheDir1, 1024*1024*1024);
+        lruCache = DiskLruCache.create(cacheDir1, 1024 * 1024 * 1024);
         lruCache
 
 
@@ -116,8 +124,6 @@ class MainActivity : ComponentActivity() {
         contex = applicationContext
 
         setContent {
-
-
 
 
             NhentaiTheme {

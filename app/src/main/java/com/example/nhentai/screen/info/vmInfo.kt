@@ -2,8 +2,11 @@ package com.example.nhentai.screen.info
 
 import android.annotation.SuppressLint
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.Snapshot
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -32,7 +35,7 @@ class vmInfo @Inject constructor(
 ) : ViewModel() {
 
     var gallery by mutableStateOf(Gallery())
-    var thumb = mutableListOf<EntityThumbContainer>()
+    var thumb = mutableStateListOf<EntityThumbContainer>()
 
     init {
         Timber.i("Создание вьюмодели vmInfo")
@@ -50,10 +53,6 @@ class vmInfo @Inject constructor(
 
         //DN = DynamicNHentai(0,"","null","null", null, 0, "", null, 0)
     }
-
-    var ReedDataComplete = mutableStateOf(false) //Признак того что данные прочитаны полностью
-
-    var IndexirovanieComplete = mutableStateOf(false)
 
 //    ////////////////////////////////////////////////////////
 //    fun launchIndexirovanieOriginal() {
@@ -85,9 +84,11 @@ class vmInfo @Inject constructor(
     ////////////////////////////////////////////////////////
     fun launchReadFromId(id: Int) {
         Timber.i("...launchReadFromId() $id")
-        ReedDataComplete.value = false
+
         viewModelScope.launch(Dispatchers.IO) {
 
+            gallery = Gallery()
+            thumb.clear()
 
             val isExistInRoom = repository.isGalleryExist(id.toLong())
             Timber.i("Запись id $id существует в Room = $isExistInRoom")
@@ -101,11 +102,12 @@ class vmInfo @Inject constructor(
                 }
 
                 val tempDN = stringToDynamicHentai(html)
-                ReedDataComplete.value = true
+
 
                 run {
                     Timber.i("Добавление в Room записи DN id:${tempDN.id}")
                     try {
+
                         repository.insertInInDB(
                             Gallery(
                                 tempDN.id.toLong(),
@@ -128,11 +130,8 @@ class vmInfo @Inject constructor(
                             )
                         }
 
-
-
                         gallery = repository.galleryById(id.toLong()) //Читаем текущую галерею
-                        thumb.clear()
-                        thumb = repository.getThumbContainerById(id.toLong()).toMutableList()
+                        thumb.addAll(repository.getThumbContainerById(id.toLong()))
 
                     } catch (e: Exception) {
                         Timber.e("repository.insertInInDB " + e.message)
@@ -141,13 +140,16 @@ class vmInfo @Inject constructor(
             } else {
 
                 gallery = repository.galleryById(id.toLong()) //Читаем текущую галерею
-                thumb.clear()
-                thumb = repository.getThumbContainerById(id.toLong()).toMutableList()
+                thumb .addAll(repository.getThumbContainerById(id.toLong()))
 
             }
 
+            Timber.i("Закончили ...launchReadFromId() 0")
 
         }
+
+
+
 
     }
 
