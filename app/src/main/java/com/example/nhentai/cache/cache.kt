@@ -1,14 +1,12 @@
 package com.example.nhentai.cache
 
 import com.example.nhentai.cacheDirTemp
-import com.example.nhentai.contex
 import com.tomclaw.cache.DiskLruCache
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.prepareGet
-import io.ktor.http.contentLength
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.isEmpty
 import io.ktor.utils.io.core.readBytes
@@ -19,8 +17,6 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 
-
-lateinit var HTTPCacheFolderPath: String //Корневая папка где лежит кеш
 
 lateinit var lruCache: DiskLruCache
 
@@ -45,12 +41,6 @@ fun URLtoFilePath(url: String): String {
     return path ?: "null"
 }
 
-
-fun filePath(str: String): String {
-    val srcFolderPath = contex.getExternalFilesDir("/Cache/$str")
-    return srcFolderPath.toString() + "/${str.substringAfterLast('/')}"
-}
-
 //Проверить адресс есть ли в кеше
 //Возвращает bool
 fun cacheCheck(url: String): Boolean {
@@ -69,21 +59,21 @@ fun isFileExists(file: File): Boolean {
     return file.exists() && !file.isDirectory
 }
 
-//Запись в кеш HTML страницу
-@OptIn(DelicateCoroutinesApi::class)
-suspend fun cacheHTMLWrite(url: String, html: String) {
-    Timber.i("...cacheHTMLWrite $url")
-    GlobalScope.launch(Dispatchers.IO) {
-        try {
-            val file = File.createTempFile("random", ".dat", cacheDirTemp)
-            file.writeText(html)
-            lruCache.put(url, file)
-            Timber.i("HTML сохранен в Кеш $url Файл ${URLtoFilePath(url)}")
-        } catch (e: Exception) {
-            Timber.e(e.message)
-        }
-    }
-}
+////Запись в кеш HTML страницу
+//@OptIn(DelicateCoroutinesApi::class)
+//suspend fun cacheHTMLWrite(url: String, html: String) {
+//    Timber.i("...cacheHTMLWrite $url")
+//    GlobalScope.launch(Dispatchers.IO) {
+//        try {
+//            val file = File.createTempFile("random", ".dat", cacheDirTemp)
+//            file.writeText(html)
+//            lruCache.put(url, file)
+//            Timber.i("HTML сохранен в Кеш $url Файл ${URLtoFilePath(url)}")
+//        } catch (e: Exception) {
+//            Timber.e(e.message)
+//        }
+//    }
+//}
 
 //Чтение из кеша HTML страницы
 suspend fun cacheHTMLRead(url: String): String {
@@ -152,8 +142,3 @@ fun cacheFileWrite(url: String) {
 
     }
 }
-
-//val source = File("source.txt")
-//val destination = File("destination.txt")
-//source.copyTo(destination)
-

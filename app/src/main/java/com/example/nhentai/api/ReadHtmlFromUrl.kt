@@ -2,47 +2,30 @@ package com.example.nhentai.api
 
 import com.example.nhentai.cache.cacheCheck
 import com.example.nhentai.cache.cacheHTMLRead
-import com.example.nhentai.cache.cacheHTMLWrite
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import okhttp3.internal.http2.Http2Reader.Companion.logger
 import timber.log.Timber
-import java.net.InetSocketAddress
-import java.net.Proxy
+
+private val client = HttpClient(CIO)//(OkHttp)
+{
+    install(Logging) {
+        level = LogLevel.INFO
+    }
+
+    install(HttpTimeout)
+    {
+        requestTimeoutMillis = Long.MAX_VALUE
+    }
+}
 
 suspend fun readHtmlFromURL(url : String = "https://nhentai.to/g/403146"): String {
     Timber.i("..readHtmlFromURL $url ")
-
-    val client = HttpClient(Android)//(OkHttp)
-    {
-        install(Logging) {
-            level = LogLevel.NONE
-            //logger = Logger.DEFAULT
-
-        //level = LogLevel.HEADERS
-
-        }
-
-        install(HttpTimeout)
-        {
-            requestTimeoutMillis = Long.MAX_VALUE
-        }
-
-
-        engine {
-            //proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress("85.26.146.169", 80)) //85.26.146.169:80
-        }
-
-
-
-    }
 
     if (cacheCheck(url))
     {
@@ -52,14 +35,22 @@ suspend fun readHtmlFromURL(url : String = "https://nhentai.to/g/403146"): Strin
     }
     else
     {
-        //В кеше нет данных
-        val response: HttpResponse = client.get(url)
-        println(response.toString())
-        val result = response.bodyAsText()
+        Timber.i("В кеше нет данных")
+        lateinit var response: HttpResponse
+        try {
+            response = client.get(url)
+            println(response.toString())
+            return response.bodyAsText()
+        } catch (e: Exception) {
+            Timber.e("Ошибка " + e.message)
+        }
+
         //Сохраним в кеш данный html
-        cacheHTMLWrite(url, result)
-        client.close()
-        return result
+
+        //Downloader.cache.HtmlChannel.send(url)
+
+        //client.close()
+        return ""
     }
 
 

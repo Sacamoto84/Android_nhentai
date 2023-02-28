@@ -7,12 +7,15 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.room.Room
-import com.example.nhentai.cache.HTTPCacheFolderPath
+import com.example.nhentai.api.Downloader
 import com.example.nhentai.cache.lruCache
-import com.example.nhentai.room.AppDatabase
-import com.example.nhentai.room.User
 import com.example.nhentai.screen.info.Info
 import com.example.nhentai.screen.info.vmInfo
 import com.example.nhentai.screen.viewer.ScreenViewer
@@ -21,11 +24,6 @@ import com.example.nhentai.ui.theme.NhentaiTheme
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import com.jakewharton.picnic.BorderStyle
-import com.jakewharton.picnic.TextAlignment
-import com.jakewharton.picnic.TextBorder.Companion.ROUNDED
-import com.jakewharton.picnic.renderText
-import com.jakewharton.picnic.table
 import com.tomclaw.cache.DiskLruCache
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -45,88 +43,40 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
 
-          //PropertyConfigurator.configure("D:\\Dropbox\\Android\\nhentai\\app\\log4j.p")
 
+
+
+        //PropertyConfigurator.configure("D:\\Dropbox\\Android\\nhentai\\app\\log4j.p")
 
 //        if (BuildConfig.DEBUG) {
 //            plant(TimberRemoteTree())
 //        } else
 
-            plant(DebugTree())
-
-
+        plant(DebugTree())
 
         Timber.i("Hello")
 
-        //path = applicationContext.getExternalFilesDir("/DiskLruCache1/").toString()
+        System.setProperty(
+            kotlinx.coroutines.DEBUG_PROPERTY_NAME,
+            kotlinx.coroutines.DEBUG_PROPERTY_VALUE_ON
+        )
+
+        //Создание загрузчика
+        Downloader.cache
+
+        Downloader.cache.routine()
+
 
         cacheDir1 = applicationContext.getExternalFilesDir("/DiskLruCache2/")!!
         cacheDirTemp = applicationContext.getExternalFilesDir("/DiskLruCache2/Temp")!!
 
-        //val  journalFile = applicationContext.getExternalFilesDir("/DiskLruCache2/journalFile")
-        //val  journalBkpFile= applicationContext.getExternalFilesDir("/DiskLruCache2/Bkp")
-
         lruCache = DiskLruCache.create(cacheDir1, 1024 * 1024 * 1024);
-        lruCache
-
-
-
-
-
-        println(
-            table {
-                style {
-                    borderStyle = BorderStyle.Hidden
-                }
-                cellStyle {
-                    alignment = TextAlignment.MiddleRight
-                    paddingLeft = 1
-                    paddingRight = 1
-                    borderLeft = true
-                    borderRight = true
-                }
-                header {
-                    cellStyle {
-                        border = true
-                        alignment = TextAlignment.BottomLeft
-                    }
-                    row {
-                        cell("APK") {
-                            rowSpan = 2
-                        }
-                        cell("compressed") {
-                            alignment = TextAlignment.BottomCenter
-                            columnSpan = 3
-                        }
-                        cell("uncompressed") {
-                            alignment = TextAlignment.BottomCenter
-                            columnSpan = 3
-                        }
-                    }
-                    row("old", "new", "diff", "old", "new", "diff")
-                }
-                body {
-                    row("dex", "664.8 KiB", "664.8 Kib", "-25 B", "1.5 MiB", "1.5 MiB", "-112 B")
-                    // "arsc", "manifest", etc…
-                }
-                footer {
-                    cellStyle {
-                        border = true
-                    }
-                    row("total", "1.3 MiB", "1.3 MiB", "-39 B", "2.2 MiB", "2.2 MiB", "-112 B")
-                }
-            }.renderText(border = ROUNDED)
-        )
-
-
-
-        HTTPCacheFolderPath = applicationContext.getExternalFilesDir("Cache").toString()
-        contex = applicationContext
 
         setContent {
 
 
             NhentaiTheme {
+
 
                 val navController = rememberAnimatedNavController()
 
@@ -136,19 +86,25 @@ class MainActivity : ComponentActivity() {
                         enterTransition = { fadeIn(animationSpec = tween(0)) },
                         exitTransition = { fadeOut(animationSpec = tween(0)) })
                     {
+                        println("!!!! Пиииииииииииииииииииии !!!")
                         val viewModel = hiltViewModel<vmInfo>()
                         println(viewModel)
                         Info(navController = navController, viewModel)
                     }
+
+
+                    //composable("viewer/{id}/{page}",
 
                     composable("viewer",
                         enterTransition = { fadeIn(animationSpec = tween(0)) },
                         exitTransition = { fadeOut(animationSpec = tween(0)) }
                     )
                     {
-                        val viewModel = hiltViewModel<vmViewer>()
-                        println(viewModel)
-                        ScreenViewer(navController, viewModel)
+                        println("!!!! Ку !!!")
+                        //val viewModel = hiltViewModel<vmViewer>()
+                        //println("!!!! vmViewer !!!$viewModel")
+
+                        //ScreenViewer(navController, it.arguments?.getString("id")!!.toLong() , it.arguments?.getString("page")!!.toLong())
                     }
 
                 }

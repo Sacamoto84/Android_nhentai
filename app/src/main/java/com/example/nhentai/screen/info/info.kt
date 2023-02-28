@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -29,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +48,7 @@ import com.example.nhentai.cache.URLtoFilePath
 import com.example.nhentai.cache.cacheCheck
 import com.example.nhentai.cache.cacheFileWrite
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlin.math.abs
@@ -202,6 +206,8 @@ fun ScreenInfo(
     id: Int,
 ) {
 
+    val scope = rememberCoroutineScope()
+
     val scrollState = rememberScrollState()
 
     Timber.i("ScreenInfo id $id")
@@ -256,45 +262,38 @@ fun ScreenInfo(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                maxItemsInEachRow = 3//viewModel.DN.num_pages/1
-                ,
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-
-            )
-            {
-
-                for (i in 0 until viewModel.thumb.size) {
-
-                    val address =
-                        if (!cacheCheck(viewModel.thumb[i].urlthumb.toString())) {
-                            cacheFileWrite(viewModel.thumb[i].urlthumb.toString())
-                            viewModel.thumb[i].urlthumb.toString()
-                        } else {
-                            URLtoFilePath(viewModel.thumb[i].urlthumb.toString())
-                        }
-
-                    Timber.i("address $address")
-
-                    AsyncImage(
-                        modifier = Modifier
-                            .fillMaxWidth(0.3f)
-                            .padding(top = 8.dp)
-                            .clickable {
-                                navController.navigate(
-                                    "viewer",
-                                ) //По нажатию открываем viewer
-                            },
-                        model = address//i.url.toString()
-                        ,
-                        contentDescription = null, contentScale = ContentScale.Crop
-                    )
-                }
+            Button(onClick = { navController.navigate("viewer") }) {
 
             }
+
+
+//            FlowRow(
+//                modifier = Modifier.fillMaxWidth(),
+//                maxItemsInEachRow = 2//viewModel.DN.num_pages/1
+//                ,
+//                horizontalArrangement = Arrangement.SpaceEvenly,
+//                verticalAlignment = Alignment.CenterVertically
+//
+//            )
+//            {
+//
+//                for (i in viewModel.addressThumb.indices) {
+//                    Timber.i("address ${viewModel.addressThumb[i]}")
+//                    AsyncImage(
+//                        modifier = Modifier
+//                            .fillMaxWidth(0.3f).padding(top = 8.dp)
+//                            .clickable {
+//                                scope.launch {
+//                                    navController.navigate("viewer",
+//                                        //"viewer/${viewModel.thumb[0].gallery_id}/$i",
+//                                    ) //По нажатию открываем viewer
+//                                }
+//                            },
+//                        model = viewModel.addressThumb[i], contentDescription = null, contentScale = ContentScale.Crop
+//                    )
+//                }
+//
+//            }
 
         }
 

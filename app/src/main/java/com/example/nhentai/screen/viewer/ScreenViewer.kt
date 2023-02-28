@@ -44,8 +44,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.SubcomposeAsyncImage
+import com.jakewharton.picnic.table
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -60,10 +62,25 @@ var zoom1 by mutableStateOf(1f)
 
 
 @Composable
-fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
+fun ScreenViewer(navController: NavHostController, viewModel: vmViewer = hiltViewModel<vmViewer>()) {
+//
+
+
+    Timber.i(
+        table {
+            cellStyle {border = true }
+            //row("...ScreenViewer id $_id page $_page")
+        }.toString()
+    )
 
     LaunchedEffect(key1 = true, block =
     {
+        Timber.i(
+            table {
+                cellStyle {border = true }
+                row("...ScreenViewer LaunchedEffect")
+            }.toString()
+        )
         viewModel.calculateAddressCoroutine()
     })
 
@@ -94,6 +111,15 @@ fun ScreenViewer(navController: NavHostController, viewModel: vmViewer) {
             .fillMaxSize()
             .background(Color(0xFF1F1F1F))
     ) {
+
+        Timber.i(
+            table {
+                cellStyle {border = true }
+                row("...ScreenViewer Column")
+            }.toString()
+        )
+
+
 
         Box(
             modifier = Modifier

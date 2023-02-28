@@ -24,13 +24,10 @@ sealed class Screen(val route: String) {
 
 var DNselectedPage = 1
 
-var GlobalId by mutableStateOf(400000)
+var GlobalId by mutableStateOf(310000)
 
 var x = MutableLiveData<Int>()
 
-
-@SuppressLint("StaticFieldLeak")
-lateinit var contex: Context
 
 //https://blog.canopas.com/jetpack-compose-with-dagger-hilt-mvvm-and-navcontroller-b6048bb85073
 @Singleton

@@ -10,7 +10,9 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.nhentai.api.Downloader
 import com.example.nhentai.api.readHtmlFromURL
+import com.example.nhentai.cache.URLtoFilePath
 import com.example.nhentai.cache.cacheCheck
 import com.example.nhentai.cache.cacheFileWrite
 import com.example.nhentai.parser.stringToDynamicHentai
@@ -36,7 +38,10 @@ class vmInfo @Inject constructor(
 ) : ViewModel() {
 
     var gallery by mutableStateOf(Gallery())
-    var thumb = mutableStateListOf<EntityThumbContainer>()
+    //var thumb = mutableStateListOf<EntityThumbContainer>()
+
+    var addressThumb =
+        mutableStateListOf<String>()  //Список адресов которые используются для вывода списка
 
     init {
         Timber.i("Создание вьюмодели vmInfo")
@@ -86,10 +91,22 @@ class vmInfo @Inject constructor(
     fun launchReadFromId(id: Int) {
         Timber.i("...launchReadFromId() $id")
 
-        viewModelScope.launch(Dispatchers.IO) {
+        if (!((id>0) && (id < 10000000)))
+        {
+            Timber.e("Ошибка id")
+            return
+        }
 
+        //addressThumb.clear()
+        //gallery = Gallery()
+
+        viewModelScope.launch(Dispatchers.Default) {
+
+            addressThumb.clear()
             gallery = Gallery()
-            thumb.clear()
+
+            val thumb = mutableListOf<EntityThumbContainer>()
+
 
             val isExistInRoom = repository.isGalleryExist(id.toLong())
             Timber.i("Запись id $id существует в Room = $isExistInRoom")
@@ -144,36 +161,62 @@ class vmInfo @Inject constructor(
 
             }
 
-            if ((thumb.size != 0) && (!gallery.AllDataComplete)) {
-                //Если есть записи по эскизам, получим список оригиналов
-                Timber.i("...Получение Оригинал по href()")
-                val shot = thumb.toList()
-                launch(Dispatchers.IO) {
 
-                    for (i in shot.indices) {
-                        var s = "https://nhentai.to${shot[i].href}"
-                        if (s.last() == '/') s = s.dropLast(1)
-                        val originalURL = stringToUrlOriginal(readHtmlFromURL(s))
-                        shot[i].urloriginal = originalURL
-                        Timber.i("originalURL = $originalURL")
-                    }
+//            launch(Dispatchers.Default) {
+//                addressThumb.clear()
+//                thumb.forEach {
+//
+//                    launch(Dispatchers.IO) {
+//                        val address =
+//                            if (!cacheCheck(it.urlthumb.toString())) {
+//                                Downloader.cache.FileChannel.send(it.urlthumb.toString())
+//                                it.urlthumb.toString()
+//                            } else {
+//                                URLtoFilePath(it.urlthumb.toString())
+//                            }
+//                        addressThumb.add(address)
+//                    }
+//
+//                }
+//            }
 
-                    //Получили список оригинал адресов и записали в базу
-                    for (i in shot.indices) {
-                        shot[i].urloriginal?.let {
-                            repository.updateOriginal(
-                                shot[i].gallery_id, (i + 1).toLong(),
-                                it
-                            )
-                        }
-                    }
+//
+//            launch(Dispatchers.Default) {
+//
+//                if ((thumb.size != 0) && (!gallery.AllDataComplete)) {
+//                    //Если есть записи по эскизам, получим список оригиналов
+//                    Timber.i("...Получение Оригинал по href()")
+//                    val shot = thumb.toList()
+//
+//
+//                        for (i in shot.indices) {
+//                            var s = "https://nhentai.to${shot[i].href}"
+//                            if (s.last() == '/') s = s.dropLast(1)
+//                            val originalURL = stringToUrlOriginal(readHtmlFromURL(s))
+//                            shot[i].urloriginal = originalURL
+//                            Timber.i("originalURL = $originalURL")
+//                        }
+//
+//                        //Получили список оригинал адресов и записали в базу
+//                        for (i in shot.indices) {
+//                            shot[i].urloriginal?.let {
+//                                repository.updateOriginal(
+//                                    shot[i].gallery_id, (i + 1).toLong(),
+//                                    it
+//                                )
+//                            }
+//                        }
+//
+//                        //Установили признак того что все оригинал записаны в базу
+//                        repository.updateAllDataComplete(shot[0].gallery_id, true)
+//
+//
+//
+//                }
+//
+//            }
+//
 
-                    //Установили признак того что все оригинал записаны в базу
-                    repository.updateAllDataComplete(shot[0].gallery_id, true)
-
-                }
-
-            }
 
             Timber.i("Закончили ...launchReadFromId() 0")
 
@@ -181,6 +224,7 @@ class vmInfo @Inject constructor(
 
 
     }
+
 
     //Удалить запись из Room, висит на кнопке удалить
     fun deleteGalleryById() {
