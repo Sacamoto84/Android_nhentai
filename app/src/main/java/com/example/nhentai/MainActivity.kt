@@ -1,5 +1,6 @@
 package com.example.nhentai
 
+import android.os.AsyncTask
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -7,24 +8,25 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.nhentai.api.Downloader
 import com.example.nhentai.cache.lruCache
 import com.example.nhentai.screen.info.Info
 import com.example.nhentai.screen.info.vmInfo
-import com.example.nhentai.screen.viewer.ScreenViewer
-import com.example.nhentai.screen.viewer.vmViewer
 import com.example.nhentai.ui.theme.NhentaiTheme
+import com.example.nhentai.wireguard.TunnelModel
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.tomclaw.cache.DiskLruCache
+import com.wireguard.android.backend.Backend
+import com.wireguard.android.backend.GoBackend
+import com.wireguard.android.backend.Tunnel
+import com.wireguard.config.Config
+import com.wireguard.config.InetEndpoint
+import com.wireguard.config.InetNetwork
+import com.wireguard.config.Interface
+import com.wireguard.config.Peer
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.DelicateCoroutinesApi
 import timber.log.Timber
@@ -32,11 +34,15 @@ import timber.log.Timber.DebugTree
 import timber.log.Timber.Forest.plant
 import java.io.File
 
+
 lateinit var cacheDir1: File
 lateinit var cacheDirTemp: File
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private var backend: Backend? = null
+
 
     @OptIn(ExperimentalAnimationApi::class, DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +69,6 @@ class MainActivity : ComponentActivity() {
 
         //Создание загрузчика
         Downloader.cache
-
         Downloader.cache.routine()
 
 
@@ -71,6 +76,61 @@ class MainActivity : ComponentActivity() {
         cacheDirTemp = applicationContext.getExternalFilesDir("/DiskLruCache2/Temp")!!
 
         lruCache = DiskLruCache.create(cacheDir1, 1024 * 1024 * 1024);
+
+
+
+
+        try {
+            val s = backend!!.runningTunnelNames
+        } catch (e: NullPointerException) {
+            // backend cannot be created without context
+            PersistentConnectionProperties.getInstance().backend = GoBackend(this)
+            backend = PersistentConnectionProperties.getInstance().backend
+            backend
+        }
+
+        val tunnelModel = TunnelModel()
+        tunnelModel.privateKey =  "2EBWMuvC8coVnyApgJTcpMnxt51XToX+MOObXHAMjnI="
+        tunnelModel.IP = "10.21.151.19/32"
+        tunnelModel.dns = "8.8.8.8"
+
+        tunnelModel.endpoint = "de.wg.finevpn.org:993"//"83.171.227.10:993"//"de.wg.finevpn.org:993"
+        tunnelModel.publicKey = "D9myUw1V14LApTC5V8qVsXlxHov/1bnPgKrIehKSyR8="
+        tunnelModel.allowedIPs.add(InetNetwork.parse("0.0.0.0/0"))
+        tunnelModel.url = "10.0.0.1"
+
+        val tunnel: Tunnel = PersistentConnectionProperties.getInstance().tunnel
+        val intentPrepare = GoBackend.VpnService.prepare(this)
+        if (intentPrepare != null) {
+            startActivityForResult(intentPrepare, 0)
+        }
+
+        val interfaceBuilder = Interface.Builder()
+
+        val peerBuilder = Peer.Builder()
+        AsyncTask.execute {
+            try {
+                if (backend?.getState(PersistentConnectionProperties.getInstance().tunnel)  == Tunnel.State.UP) {
+                    backend?.setState(tunnel, Tunnel.State.DOWN, null)
+                } else {
+                    backend?.setState(
+                        tunnel, Tunnel.State.UP, Config.Builder()
+                            .setInterface(
+                                interfaceBuilder.addAddress(InetNetwork.parse(tunnelModel.IP))
+                                    .parsePrivateKey(tunnelModel.privateKey).build()
+                            )
+                            .addPeer(
+                                peerBuilder.addAllowedIps(tunnelModel.allowedIPs)
+                                    .setEndpoint(InetEndpoint.parse(tunnelModel.endpoint))
+                                    .parsePublicKey(tunnelModel.publicKey).build()
+                            )
+                            .build()
+                    )
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
 
         setContent {
 
@@ -113,6 +173,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+
+
+
+
+
 
 val html = """
     <!doctype html>

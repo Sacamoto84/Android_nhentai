@@ -72,47 +72,43 @@ class DownloaderClass {
         }
 
 
-
-
         //Закачка Html в кеш
-//        GlobalScope.launch(Dispatchers.IO) {
-//            while (true) {
-//                if (setURLHTML.size > 0) {
-//                    val url = setURLHTML.first()
-//                    setURLHTML.remove(url)
-//
-//                    GlobalScope.launch(Dispatchers.IO) {
-//
-//                        val client = HttpClient(CIO)//(OkHttp)
-//                        {
-//                            install(HttpTimeout)
-//                            {
-//                                requestTimeoutMillis = Long.MAX_VALUE
-//                            }
-//                        }
-//
-//                        try {
-//                        Timber.d("url $url")
-//                        val response: HttpResponse = client.get(url)
-//                        println(response.toString())
-//                        val html = response.bodyAsText()
-//                        //Сохраним в кеш данный html
-//
-//                            val file = File.createTempFile("random", ".dat", cacheDirTemp)
-//                            file.writeText(html)
-//                            lruCache.put(url, file)
-//                            Timber.i("HTML сохранен в Кеш $url Файл ${URLtoFilePath(url)}")
-//                        } catch (e: Exception) {
-//                            Timber.e(e.message)
-//                        }
-//                        client.close()
-//                    }
-//
-//                }
-//                else
-//                    delay(10)
-//            }
-//        }
+        GlobalScope.launch(Dispatchers.IO) {
+            while (true) {
+                if (setURLHTML.size > 0) {
+                    val url = setURLHTML.first()
+                    setURLHTML.remove(url)
+
+                    GlobalScope.launch(Dispatchers.IO) {
+
+                        val client = HttpClient(CIO)//(OkHttp)
+                        {
+                            install(HttpTimeout)
+                            {
+                                requestTimeoutMillis = Long.MAX_VALUE
+                            }
+                        }
+
+                        try {
+                            Timber.d("url $url")
+                            val response: HttpResponse = client.get(url)
+                            println(response.toString())
+                            val html = response.bodyAsText()
+                            //Сохраним в кеш данный html
+                            val file = File.createTempFile("random", ".dat", cacheDirTemp)
+                            file.writeText(html)
+                            lruCache.put(url, file)
+                            Timber.i("HTML сохранен в Кеш $url Файл ${URLtoFilePath(url)}")
+                        } catch (e: Exception) {
+                            Timber.e(e.message)
+                        }
+                        client.close()
+                    }
+
+                } else
+                    delay(10)
+            }
+        }
 
 
     }

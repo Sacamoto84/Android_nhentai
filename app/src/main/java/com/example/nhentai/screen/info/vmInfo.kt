@@ -116,7 +116,8 @@ class vmInfo @Inject constructor(
                 Timber.i("Запись id $id нет в Room читаем из сети")
                 val html = readHtmlFromURL("https://nhentai.to/g/$id")
                 if (html.isBlank()) {
-                    Timber.e("html пустой")
+                    Timber.e("Ошибка html пустой")
+                    return@launch
                 }
 
                 val tempDN = stringToDynamicHentai(html)
@@ -161,24 +162,24 @@ class vmInfo @Inject constructor(
 
             }
 
+            //Создание адресов
+            launch(Dispatchers.IO) {
+                addressThumb.clear()
+                thumb.forEach {
 
-//            launch(Dispatchers.Default) {
-//                addressThumb.clear()
-//                thumb.forEach {
-//
-//                    launch(Dispatchers.IO) {
-//                        val address =
-//                            if (!cacheCheck(it.urlthumb.toString())) {
-//                                Downloader.cache.FileChannel.send(it.urlthumb.toString())
-//                                it.urlthumb.toString()
-//                            } else {
-//                                URLtoFilePath(it.urlthumb.toString())
-//                            }
-//                        addressThumb.add(address)
-//                    }
-//
-//                }
-//            }
+                    launch(Dispatchers.IO) {
+                        val address =
+                            if (!cacheCheck(it.urlthumb.toString())) {
+                                Downloader.cache.FileChannel.send(it.urlthumb.toString())
+                                it.urlthumb.toString()
+                            } else {
+                                URLtoFilePath(it.urlthumb.toString())
+                            }
+                        addressThumb.add(address)
+                    }
+
+                }
+            }
 
 //
 //            launch(Dispatchers.Default) {
@@ -218,7 +219,7 @@ class vmInfo @Inject constructor(
 //
 
 
-            Timber.i("Закончили ...launchReadFromId() 0")
+            Timber.i("Закончили ...launchReadFromId() $id")
 
         }
 

@@ -4,6 +4,7 @@ import com.example.nhentai.cache.cacheCheck
 import com.example.nhentai.cache.cacheHTMLRead
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
@@ -12,7 +13,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import timber.log.Timber
 
-private val client = HttpClient(CIO)//(OkHttp)
+private val client = HttpClient(OkHttp)//(OkHttp)
 {
     install(Logging) {
         level = LogLevel.INFO
@@ -38,6 +39,7 @@ suspend fun readHtmlFromURL(url : String = "https://nhentai.to/g/403146"): Strin
         Timber.i("В кеше нет данных")
         lateinit var response: HttpResponse
         try {
+            Downloader.cache.HtmlChannel.send(url)
             response = client.get(url)
             println(response.toString())
             return response.bodyAsText()
@@ -47,7 +49,7 @@ suspend fun readHtmlFromURL(url : String = "https://nhentai.to/g/403146"): Strin
 
         //Сохраним в кеш данный html
 
-        //Downloader.cache.HtmlChannel.send(url)
+        //
 
         //client.close()
         return ""

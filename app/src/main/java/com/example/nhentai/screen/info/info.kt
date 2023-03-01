@@ -267,33 +267,33 @@ fun ScreenInfo(
             }
 
 
-//            FlowRow(
-//                modifier = Modifier.fillMaxWidth(),
-//                maxItemsInEachRow = 2//viewModel.DN.num_pages/1
-//                ,
-//                horizontalArrangement = Arrangement.SpaceEvenly,
-//                verticalAlignment = Alignment.CenterVertically
-//
-//            )
-//            {
-//
-//                for (i in viewModel.addressThumb.indices) {
-//                    Timber.i("address ${viewModel.addressThumb[i]}")
-//                    AsyncImage(
-//                        modifier = Modifier
-//                            .fillMaxWidth(0.3f).padding(top = 8.dp)
-//                            .clickable {
-//                                scope.launch {
-//                                    navController.navigate("viewer",
-//                                        //"viewer/${viewModel.thumb[0].gallery_id}/$i",
-//                                    ) //По нажатию открываем viewer
-//                                }
-//                            },
-//                        model = viewModel.addressThumb[i], contentDescription = null, contentScale = ContentScale.Crop
-//                    )
-//                }
-//
-//            }
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                maxItemsInEachRow = 3//viewModel.DN.num_pages/1
+                ,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+
+            )
+            {
+
+                for (i in viewModel.addressThumb.indices) {
+                    Timber.i("address ${viewModel.addressThumb[i]}")
+                    AsyncImage(
+                        modifier = Modifier
+                            .fillMaxWidth(0.3f).padding(top = 8.dp)
+                            .clickable {
+                                scope.launch {
+                                    navController.navigate("viewer",
+                                        //"viewer/${viewModel.thumb[0].gallery_id}/$i",
+                                    ) //По нажатию открываем viewer
+                                }
+                            },
+                        model = viewModel.addressThumb[i], contentDescription = null, contentScale = ContentScale.Crop
+                    )
+                }
+
+            }
 
         }
 
