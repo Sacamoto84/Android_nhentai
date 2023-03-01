@@ -9,6 +9,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.bugsnag.android.Bugsnag
 import com.example.nhentai.api.Downloader
 import com.example.nhentai.cache.lruCache
 import com.example.nhentai.screen.info.Info
@@ -47,10 +48,6 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalAnimationApi::class, DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
-
-
 
         //PropertyConfigurator.configure("D:\\Dropbox\\Android\\nhentai\\app\\log4j.p")
 
@@ -149,7 +146,7 @@ class MainActivity : ComponentActivity() {
                         println("!!!! Пиииииииииииииииииииии !!!")
                         val viewModel = hiltViewModel<vmInfo>()
                         println(viewModel)
-                        Info(navController = navController, viewModel)
+                        Info(navController = navController, viewModel, GlobalId.value )
                     }
 
 

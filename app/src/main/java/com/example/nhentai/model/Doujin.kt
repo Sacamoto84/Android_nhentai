@@ -2,7 +2,7 @@ package com.example.nhentai.model
 
 data class DynamicNHentai
     (
-    var id: Int = 0,
+    var id: Long = 0,
     var urlCover: String? = "",
     var h1: String = "",
     var tags: MutableList<TagContainer>?,

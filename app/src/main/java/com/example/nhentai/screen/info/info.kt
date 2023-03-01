@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowColumn
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +23,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -40,10 +45,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.MeasurePolicy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import com.example.nhentai.AbortGlobalId
 import com.example.nhentai.GlobalId
+import com.example.nhentai.R
 import com.example.nhentai.cache.URLtoFilePath
 import com.example.nhentai.cache.cacheCheck
 import com.example.nhentai.cache.cacheFileWrite
@@ -152,7 +160,11 @@ var iid by mutableStateOf(403148)
 fun Info(
     navController: NavHostController,
     viewModel: vmInfo,
+    id: Long,
 ) {
+
+
+    //navController.popBackStack()
 
     //val viewModel: vmInfo = viewModel()
 
@@ -163,7 +175,7 @@ fun Info(
                 .weight(1f)
         )
         {
-            ScreenInfo(navController, viewModel = viewModel, id = GlobalId)
+            ScreenInfo(navController, viewModel = viewModel, id = id)
         }
         Box(
             modifier = Modifier
@@ -175,13 +187,19 @@ fun Info(
 
             Row() {
 
-                Button(onClick = { GlobalId -= 1 }) {
+                Button(onClick = {
+                    GlobalId.value -= 1
+                    AbortGlobalId = GlobalId.value
+                }) {
                     Text(text = "-")
                 }
 
-                Text(text = "$GlobalId")
+                Text(text = "${GlobalId.value}")
 
-                Button(onClick = { GlobalId += 1 }) {
+                Button(onClick = {
+                    GlobalId.value += 1
+                    AbortGlobalId = GlobalId.value
+                }) {
                     Text(text = "+")
                 }
 
@@ -203,12 +221,14 @@ fun Info(
 fun ScreenInfo(
     navController: NavHostController,
     viewModel: vmInfo,
-    id: Int,
+    id: Long,
 ) {
 
     val scope = rememberCoroutineScope()
 
     val scrollState = rememberScrollState()
+
+    val state = rememberLazyListState()
 
     Timber.i("ScreenInfo id $id")
 
@@ -220,82 +240,189 @@ fun ScreenInfo(
 
     //val s = viewModel.thumb
 
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF1F1F1F))
     )
     {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(state = scrollState, flingBehavior = flingBehavior())
+            //.verticalScroll(state = scrollState, flingBehavior = flingBehavior())
         )
         {
 
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
 
-                AsyncImage(
-                    modifier = Modifier
-                        .fillMaxWidth(0.7f),
-                    model = viewModel.gallery.urlcover,
-                    contentDescription = null
-                )
+            val v = viewModel.addressThumb.toList()
 
-            }
+            LazyColumn(modifier = Modifier.fillMaxSize(),
+                state = viewModel.state, flingBehavior = flingBehavior()
+            ) {
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = viewModel.gallery.h1.toString(), color = Color(0xFFD9D9D9))
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = viewModel.gallery.id.toString(), color = Color(0xFFD9D9D9))
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        AsyncImage(
+                            modifier = Modifier
+                                .fillMaxWidth(0.7f),
+                            model = viewModel.gallery.urlcover,
+                            contentDescription = null
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = viewModel.gallery.h1.toString(), color = Color(0xFFD9D9D9))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = viewModel.gallery.id.toString(), color = Color(0xFFD9D9D9))
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = GlobalId.toString(), color = Color.Red)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = GlobalId.value.toString(), color = Color.Red)
 
-//                Button(onClick = { viewModel.launchIndexirovanieOriginal() }) {
-//                    Text(text = "Индексирование")
-//                }
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { navController.navigate("viewer") }) {
+                    }
 
-            Button(onClick = { navController.navigate("viewer") }) {
-
-            }
-
-
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                maxItemsInEachRow = 3//viewModel.DN.num_pages/1
-                ,
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-
-            )
-            {
-
-                for (i in viewModel.addressThumb.indices) {
-                    Timber.i("address ${viewModel.addressThumb[i]}")
-                    AsyncImage(
-                        modifier = Modifier
-                            .fillMaxWidth(0.3f).padding(top = 8.dp)
-                            .clickable {
-                                scope.launch {
-                                    navController.navigate("viewer",
-                                        //"viewer/${viewModel.thumb[0].gallery_id}/$i",
-                                    ) //По нажатию открываем viewer
-                                }
-                            },
-                        model = viewModel.addressThumb[i], contentDescription = null, contentScale = ContentScale.Crop
-                    )
                 }
 
+                items(count = v.size) {i ->
+
+                    if (i % 2 == 0)
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            //.background(Color.Magenta)
+                        , horizontalArrangement = Arrangement.Center) {
+
+                        AsyncImage(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(4.dp)
+                                //.background(Color.Green)
+                                .clickable {
+                                    scope.launch {
+                                        navController.navigate(
+                                            "viewer",
+                                            //"viewer/${viewModel.thumb[0].gallery_id}/$i",
+                                        ) //По нажатию открываем viewer
+                                    }
+                                },
+                            model = v[i],
+                            contentDescription = null,
+                            contentScale = ContentScale.FillWidth,
+                            //placeholder = painterResource(androidx.appcompat.R.drawable.notification_bg_normal_pressed )
+                        )
+
+                        if ((i + 1) <= v.lastIndex)
+                        {
+                            AsyncImage(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                                    .padding(4.dp)
+                                    //.background(Color.Red)
+                                    .clickable {
+                                        scope.launch {
+                                            navController.navigate(
+                                                "viewer",
+                                                //"viewer/${viewModel.thumb[0].gallery_id}/$i",
+                                            ) //По нажатию открываем viewer
+                                        }
+                                    },
+                                model = v[i + 1],
+                                contentDescription = null,
+                                contentScale = ContentScale.FillWidth,
+                                //placeholder = painterResource(androidx.appcompat.R.drawable.notification_bg_normal_pressed )
+                            )
+                    }
+                        else
+                        {
+                         Box(modifier = Modifier.height(1.dp)
+                             .fillMaxWidth()
+                             .weight(1f).background(Color.Gray))   
+                        }
+
+
+                    }
+
+                }
+
+
+
+
+
             }
 
+
+//            LazyVerticalGrid(
+//                columns = GridCells.Adaptive(minSize = 128.dp)
+//            )
+//            {
+//
+//                items(v.size) {i ->
+//
+//                    AsyncImage(
+//                        modifier = Modifier
+//                            .fillMaxWidth(0.3f)
+//                            .padding(top = 8.dp)
+//                            .clickable {
+//                                scope.launch {
+//                                    navController.navigate(
+//                                        "viewer",
+//                                        //"viewer/${viewModel.thumb[0].gallery_id}/$i",
+//                                    ) //По нажатию открываем viewer
+//                                }
+//                            },
+//                        model = v[i], contentDescription = null, contentScale = ContentScale.Crop,
+//                        //placeholder = painterResource(androidx.appcompat.R.drawable.notification_bg_normal_pressed )
+//                    )
+//
+//
+//                }
+//
+//            }
+
+
+//            FlowRow(
+//                modifier = Modifier.fillMaxWidth(),
+//                maxItemsInEachRow = 2,
+//                horizontalArrangement = Arrangement.SpaceEvenly,
+//                verticalAlignment = Alignment.CenterVertically
+//            )
+//            {
+//                for (i in v.indices) {
+//
+//                    Timber.i("index $i")
+//                    AsyncImage(
+//                        modifier = Modifier
+//                            .fillMaxWidth(0.3f)
+//                            .padding(top = 8.dp)
+//                            .clickable {
+//                                scope.launch {
+//                                    navController.navigate(
+//                                        "viewer",
+//                                        //"viewer/${viewModel.thumb[0].gallery_id}/$i",
+//                                    ) //По нажатию открываем viewer
+//                                }
+//                            },
+//                        model = v[i], contentDescription = null, contentScale = ContentScale.Crop,
+//                        //placeholder = painterResource(androidx.appcompat.R.drawable.notification_bg_normal_pressed )
+//                    )
+//                }
+//            }
+
+
         }
+
+
+        //for (i in v.indices) {
+
+        //}
+
+
+        //}
 
 
     }

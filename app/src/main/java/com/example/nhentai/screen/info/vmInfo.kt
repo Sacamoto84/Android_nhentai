@@ -1,13 +1,11 @@
 package com.example.nhentai.screen.info
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.Snapshot
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nhentai.api.Downloader
@@ -16,7 +14,6 @@ import com.example.nhentai.cache.URLtoFilePath
 import com.example.nhentai.cache.cacheCheck
 import com.example.nhentai.cache.cacheFileWrite
 import com.example.nhentai.parser.stringToDynamicHentai
-import com.example.nhentai.parser.stringToUrlOriginal
 import com.example.nhentai.room.EntityThumbContainer
 import com.example.nhentai.room.Gallery
 import com.example.nhentai.room.YourRepository
@@ -37,6 +34,8 @@ class vmInfo @Inject constructor(
 
 ) : ViewModel() {
 
+    val state: LazyListState = LazyListState(0)
+
     var gallery by mutableStateOf(Gallery())
     //var thumb = mutableStateListOf<EntityThumbContainer>()
 
@@ -55,7 +54,7 @@ class vmInfo @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        Timber.i("................onCleared")
+        Timber.i("onCleared вьюмодели vmInfo")
 
         //DN = DynamicNHentai(0,"","null","null", null, 0, "", null, 0)
     }
@@ -88,31 +87,33 @@ class vmInfo @Inject constructor(
     ////////////////////////////////////////////////////////
     //  Запуск при открытии страницы
     ////////////////////////////////////////////////////////
-    fun launchReadFromId(id: Int) {
+    fun launchReadFromId(id: Long) {
         Timber.i("...launchReadFromId() $id")
 
-        if (!((id>0) && (id < 10000000)))
-        {
+        if (!((id > 0) && (id < 10000000))) {
             Timber.e("Ошибка id")
             return
         }
 
-        //addressThumb.clear()
-        //gallery = Gallery()
+        addressThumb.clear()
+        gallery = Gallery()
 
-        viewModelScope.launch(Dispatchers.Default) {
-
-            addressThumb.clear()
-            gallery = Gallery()
+        viewModelScope.launch(Dispatchers.IO) {
+            Timber.wtf("1")
+            //addressThumb.clear()
+            //gallery = Gallery()
 
             val thumb = mutableListOf<EntityThumbContainer>()
-
+            Timber.wtf("2")
 
             val isExistInRoom = repository.isGalleryExist(id.toLong())
             Timber.i("Запись id $id существует в Room = $isExistInRoom")
 
             //Записи нет читаем из сети
             if (!isExistInRoom) {
+
+                Timber.wtf("3")
+
                 Timber.i("Запись id $id нет в Room читаем из сети")
                 val html = readHtmlFromURL("https://nhentai.to/g/$id")
                 if (html.isBlank()) {
@@ -120,11 +121,12 @@ class vmInfo @Inject constructor(
                     return@launch
                 }
 
+                Timber.wtf("4")
                 val tempDN = stringToDynamicHentai(html)
-
+                Timber.wtf("5")
                 Timber.i("Добавление в Room записи DN id:${tempDN.id}")
                 try {
-
+                    Timber.wtf("7")
                     repository.insertInInDB(
                         Gallery(
                             tempDN.id.toLong(),
@@ -134,9 +136,10 @@ class vmInfo @Inject constructor(
                             uploaded = tempDN.uploaded
                         )
                     )
-
+                    Timber.wtf("8")
                     //Помещаем в Room ThumbContainer
                     tempDN.thumbContainers?.forEachIndexed { index, it ->
+                        Timber.wtf("8 index $index")
                         repository.insertInThumbContainer(
                             EntityThumbContainer(
                                 gallery_id = tempDN.id.toLong(),
@@ -146,10 +149,16 @@ class vmInfo @Inject constructor(
                                 num = index + 1
                             )
                         )
+
                     }
 
-                    gallery = repository.galleryById(id.toLong()) //Читаем текущую галерею
+                    Timber.wtf("9")
+                    val gallery1 = repository.galleryById(id.toLong()) //Читаем текущую галерею
+                    Timber.wtf("10")
+                    gallery = gallery1.copy()
+                    Timber.wtf("11")
                     thumb.addAll(repository.getThumbContainerById(id.toLong()))
+                    Timber.wtf("11")
 
                 } catch (e: Exception) {
                     Timber.e("repository.insertInInDB " + e.message)
@@ -157,27 +166,27 @@ class vmInfo @Inject constructor(
 
             } else {
 
+                Timber.wtf("40")
                 gallery = repository.galleryById(id.toLong()) //Читаем текущую галерею
+                Timber.wtf("41")
                 thumb.addAll(repository.getThumbContainerById(id.toLong()))
-
+                Timber.wtf("42")
             }
 
+            Timber.wtf("50")
             //Создание адресов
             launch(Dispatchers.IO) {
-                addressThumb.clear()
                 thumb.forEach {
-
-                    launch(Dispatchers.IO) {
-                        val address =
-                            if (!cacheCheck(it.urlthumb.toString())) {
-                                Downloader.cache.FileChannel.send(it.urlthumb.toString())
-                                it.urlthumb.toString()
-                            } else {
-                                URLtoFilePath(it.urlthumb.toString())
-                            }
+                    val address =
+                        if (!cacheCheck(it.urlthumb.toString())) {
+                            Downloader.cache.FileChannel.send(it.urlthumb.toString())
+                            it.urlthumb.toString()
+                        } else {
+                            URLtoFilePath(it.urlthumb.toString())
+                        }
+                    launch(Dispatchers.Main) {
                         addressThumb.add(address)
                     }
-
                 }
             }
 

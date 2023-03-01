@@ -18,7 +18,7 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
         println("Страница не найдена 404 Not Found")
 
         return DynamicNHentai(
-            id = GlobalId,
+            id = GlobalId.value,
             h1 = "404 Not Found",
             urlCover = "",
             tags = null,
@@ -40,12 +40,12 @@ fun stringToDynamicHentai(html: String): DynamicNHentai {
 
     val info = bigContainer?.getElementById("info")
     val h1 = info?.getElementsByTag("h1")?.get(0)?.childNode(0).toString()
-    var id = 0
+    var id = 0L
     try {
 
         //val h2 = info?.getElementsByTag("h2")?.get(0)?.childNode(0).toString()
 
-        id = info?.getElementsByTag("h3")?.get(0)?.childNode(1).toString().toInt()
+        id = info?.getElementsByTag("h3")?.get(0)?.childNode(1).toString().toLong()
 
     } catch (e: Exception) {
         Timber.e(e.message)

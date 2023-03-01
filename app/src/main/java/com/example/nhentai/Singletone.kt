@@ -21,13 +21,10 @@ sealed class Screen(val route: String) {
     object Viewer : Screen("viewer")
 }
 
-
 var DNselectedPage = 1
 
-var GlobalId by mutableStateOf(310000)
-
-var x = MutableLiveData<Int>()
-
+var GlobalId = mutableStateOf(120000L)
+var AbortGlobalId = 120000L
 
 //https://blog.canopas.com/jetpack-compose-with-dagger-hilt-mvvm-and-navcontroller-b6048bb85073
 @Singleton

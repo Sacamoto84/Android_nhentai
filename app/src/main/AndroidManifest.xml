@@ -14,6 +14,10 @@
 
     <application
 
+
+
+
+
         android:debuggable='true'
 
         android:name=".App"
@@ -32,6 +36,9 @@
         tools:ignore="HardcodedDebugMode">
 
         <uses-library android:name="org.apache.http.legacy" android:required="false"/>
+
+        <meta-data android:name="com.bugsnag.android.API_KEY"
+            android:value="your-api-key-here"/>
 
         <activity
             android:name=".MainActivity"

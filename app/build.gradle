@@ -9,6 +9,9 @@ plugins {
     id 'com.google.devtools.ksp' version '1.8.10-1.0.9' // Depends on your kotlin version
 
 
+
+
+
 }
 
 android {
@@ -265,4 +268,11 @@ dependencies {
     implementation "androidx.room:room-paging:$room_version"
 //////////////////////////////////////////////////////////////////////////////////
     implementation "com.wireguard.android:tunnel:1.0.20211029"
+
+    //implementation 'me.proton.vpn:wireguard-android:1.0.20211029.8'
+
+
+
+    implementation "com.bugsnag:bugsnag-android-gradle-plugin:7.4.1"
+    implementation "com.bugsnag:bugsnag-android:5.28.4"
 }

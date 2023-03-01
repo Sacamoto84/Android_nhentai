@@ -11,10 +11,10 @@ class YourRepository @Inject constructor(
     /////////////////
     //Snapshot
     //Предоставить галереи по id
-    suspend fun galleryById(id: Long) = galleryDAO.getGalleryById(id)
+    fun galleryById(id: Long) = galleryDAO.getGalleryById(id)
 
     //Предоставить thumbContainer по id
-    suspend fun getThumbContainerById(id: Long) = thumbContainerDAO.getEntityThumbContainerById(id)
+    fun getThumbContainerById(id: Long) = thumbContainerDAO.getEntityThumbContainerById(id)
     /////////////////
 
 
@@ -33,11 +33,11 @@ class YourRepository @Inject constructor(
     //Проверка на существование записи id
     suspend fun isGalleryExist(id: Long) = galleryDAO.isExist(id)
 
-    suspend fun insertInInDB(gallery: Gallery) = galleryDAO.insertAll(gallery)
+    fun insertInInDB(gallery: Gallery) = galleryDAO.insertAll(gallery)
 
     suspend fun galleryDeleteById(id: Long) = galleryDAO.deleteById(id)
 
-    suspend fun insertInThumbContainer(entity: EntityThumbContainer) =
+    fun insertInThumbContainer(entity: EntityThumbContainer) =
         thumbContainerDAO.insertAll(entity)
 
 
